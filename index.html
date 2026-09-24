@@ -163,12 +163,26 @@
 </div>
 
 <script>
+    // ===================== CONTRASEÑA DEL PROFESOR =====================
+    // ⚠️ CAMBIA ESTA CONTRASEÑA POR LA QUE QUIERAS
+    const CONTRASENA_PROFESOR = 'profe2026';
+    
+    (function() {
+        const ingresada = prompt('🔒 Ingresa la contraseña del profesor:');
+        if (ingresada !== CONTRASENA_PROFESOR) {
+            document.body.innerHTML = '<h1 style="text-align:center;margin-top:100px;color:#dc2626;">🚫 Acceso denegado</h1>';
+            throw new Error('Acceso denegado');
+        }
+    })();
+    // ===================================================================
+
     const SUPABASE_URL = 'https://eqhlrmonlrdgskjsiueb.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxaGxybW9ubHJkZ3NranNpdWViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAxMTYwMzMsImV4cCI6MjEwNTY5MjAzM30.YJpjDzOK19QMNW22qDrgIZzO5sRbmSPqtBFds1YpbJQ';
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // ⚠️ CAMBIA ESTA URL POR LA DE TU GITHUB PAGES
-    const URL_BASE_EXAMEN = 'https://jp-zeu-2007.github.io/EXAMEN-COMPUTACION/';
+    // ================== URL DEL EXAMEN DEL ALUMNO ==================
+    const URL_BASE_EXAMEN = 'https://jp-zeu-2007.github.io/PAGINA-EXAMENES/';
+    // ================================================================
 
     let estudianteActual = null;
     let datosExamenActual = null;
@@ -193,16 +207,15 @@
         setTimeout(() => div.remove(), 3000);
     }
 
-    // Cargar lista de estudiantes que ya enviaron examen
+    // ==================== LISTA DE ESTUDIANTES ====================
     async function cargarLista() {
         const gradoFiltro = document.getElementById('filtro-grado').value;
 
-        let query = _supabase
+        const { data: resultados, error } = await _supabase
             .from('resultados_evaluacion')
             .select('*')
             .order('fecha_envio', { ascending: false });
 
-        const { data: resultados, error } = await query;
         if (error) { console.error(error); return; }
 
         const contenedor = document.getElementById('lista-estudiantes');
@@ -223,7 +236,7 @@
 
             const nombre = `${est.nombres} ${est.apellidos}`;
             const clase = r.revisado_por_profesor ? 'revisado' : 'pendiente';
-            const total = r.punteo_total + (r.punteo_extra || 0);
+            const total = (r.punteo_total || 0) + (r.punteo_extra || 0);
 
             contenedor.innerHTML += `
                 <div class="estudiante ${clase}" onclick="cargarExamen('${est.codigo}')">
@@ -239,7 +252,7 @@
         }
     }
 
-    // Cargar examen de un estudiante
+    // ==================== CARGAR EXAMEN ====================
     async function cargarExamen(codigo) {
         const { data: detalle } = await _supabase
             .from('detalle_respuestas')
@@ -270,7 +283,7 @@
         renderizarExamen();
     }
 
-    // Renderizar examen
+    // ==================== RENDERIZAR EXAMEN ====================
     function renderizarExamen() {
         const d = datosExamenActual;
         const e = estudianteActual;
@@ -292,12 +305,12 @@
 
                 <table style="width: 100%; margin-top: 14px; border-collapse: collapse;">
                     <tr>
-                        <td style="border: 1px solid #000; padding: 8px;"><strong>Nombres:</strong> ${e.nombres}</td>
-                        <td style="border: 1px solid #000; padding: 8px;"><strong>Apellidos:</strong> ${e.apellidos}</td>
+                        <td style="border: 1px solid #000; padding: 8px; color:#000;"><strong>Nombres:</strong> ${e.nombres}</td>
+                        <td style="border: 1px solid #000; padding: 8px; color:#000;"><strong>Apellidos:</strong> ${e.apellidos}</td>
                     </tr>
                     <tr>
-                        <td style="border: 1px solid #000; padding: 8px;"><strong>Grado:</strong> ${obtenerNombreGrado(e.grado)}</td>
-                        <td style="border: 1px solid #000; padding: 8px;"><strong>Fecha:</strong> ${new Date(d.fecha_envio).toLocaleDateString('es-GT')}</td>
+                        <td style="border: 1px solid #000; padding: 8px; color:#000;"><strong>Grado:</strong> ${obtenerNombreGrado(e.grado)}</td>
+                        <td style="border: 1px solid #000; padding: 8px; color:#000;"><strong>Fecha:</strong> ${new Date(d.fecha_envio).toLocaleDateString('es-GT')}</td>
                     </tr>
                 </table>
 
@@ -418,7 +431,7 @@
         document.getElementById('contenido').innerHTML = html;
     }
 
-    // Guardar calificación (solo actualiza Serie IV y Extra)
+    // ==================== GUARDAR CALIFICACIÓN ====================
     async function guardarCalificacion() {
         const punteoS4 = parseInt(document.getElementById('input-punteo-s4').value) || 0;
         const inputExtra = document.getElementById('input-punteo-extra');
@@ -442,6 +455,16 @@
             return;
         }
 
+        // Actualizar también en detalle_respuestas
+        await _supabase
+            .from('detalle_respuestas')
+            .update({
+                punteo_s4: punteoS4,
+                punteo_extra: punteoExtra,
+                punteo_total: punteoTotal
+            })
+            .eq('codigo_estudiante', estudianteActual.codigo);
+
         mostrarExito('✅ Calificación guardada');
         datosExamenActual.punteo_s4 = punteoS4;
         datosExamenActual.punteo_extra = punteoExtra;
@@ -449,7 +472,7 @@
         cargarLista();
     }
 
-    // Descargar PDF del examen
+    // ==================== DESCARGAR PDF DEL EXAMEN ====================
     function descargarPDF() {
         const elemento = document.getElementById('examen-pdf');
         html2pdf().set({
@@ -461,7 +484,7 @@
         }).from(elemento).save();
     }
 
-    // Generar invitación individual (QR + PDF)
+    // ==================== GENERAR INVITACIÓN INDIVIDUAL (QR + PDF) ====================
     async function generarInvitacion(codigoEstudiante) {
         const { data: est } = await _supabase
             .from('estudiantes')
@@ -532,7 +555,7 @@
         mostrarExito('📱 Invitación generada');
     }
 
-    // Generar invitaciones masivas (todo el grado filtrado)
+    // ==================== GENERAR INVITACIONES MASIVAS ====================
     async function generarInvitacionesMasivas() {
         const gradoFiltro = document.getElementById('filtro-grado').value;
         if (!gradoFiltro) {
@@ -600,7 +623,7 @@
         mostrarExito('📄 Invitaciones masivas generadas');
     }
 
-    // Cargar al inicio
+    // ==================== CARGAR AL INICIO ====================
     cargarLista();
 </script>
 
