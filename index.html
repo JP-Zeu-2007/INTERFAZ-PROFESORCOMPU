@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel del Profesor - Evaluación de Computación</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            margin: 0;
+            background: #f3f4f6;
+            color: #1f2937;
+        }
+        .layout { display: flex; height: 100vh; }
+
+        /* Sidebar */
+        .sidebar {
+            width: 340px;
+            background: #fff;
+            border-right: 1px solid #e5e7eb;
+            overflow-y: auto;
+            padding: 16px;
+        }
+        .sidebar h2 { color: #4f46e5; margin: 0 0 12px 0; font-size: 1.2rem; }
+        .filtro-grado {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            font-size: 0.9rem;
+        }
+        .estudiante {
+            padding: 10px;
+            border: 1px solid #e5e7eb;
+            margin-bottom: 8px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.15s;
+        }
+        .estudiante:hover { background: #f0f0ff; border-color: #4f46e5; }
+        .estudiante.pendiente { border-left: 4px solid #f59e0b; }
+        .estudiante.revisado { border-left: 4px solid #10b981; }
+        .estudiante strong { display: block; font-size: 0.9rem; }
+        .estudiante small { color: #6b7280; font-size: 0.75rem; }
+
+        /* Contenido */
+        .contenido {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+        }
+        .examen {
+            background: #fff;
+            padding: 32px;
+            border-radius: 12px;
+            max-width: 850px;
+            margin: auto;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .punteo-serie {
+            border: 2px solid #c00;
+            color: #c00;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 0.95rem;
+            white-space: nowrap;
+        }
+        .input-punteo {
+            width: 70px;
+            padding: 6px;
+            font-size: 16px;
+            border: 2px solid #4f46e5;
+            border-radius: 6px;
+            text-align: center;
+        }
+        button {
+            padding: 12px 24px;
+            margin-right: 10px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: all 0.15s;
+        }
+        .btn-guardar { background: #10b981; color: white; }
+        .btn-guardar:hover { background: #059669; }
+        .btn-pdf { background: #4f46e5; color: white; }
+        .btn-pdf:hover { background: #4338ca; }
+        .btn-qr { background: #f59e0b; color: white; }
+        .btn-qr:hover { background: #d97706; }
+        .btn-masivo { background: #8b5cf6; color: white; }
+        .btn-masivo:hover { background: #7c3aed; }
+        .barra-acciones {
+            margin-top: 24px;
+            padding: 16px;
+            background: #fff;
+            border-radius: 12px;
+            position: sticky;
+            bottom: 0;
+            box-shadow: 0 -4px 12px rgba(0,0,0,0.08);
+        }
+        .placeholder {
+            text-align: center;
+            padding: 80px 20px;
+            color: #9ca3af;
+            font-size: 1.1rem;
+        }
+        .mensaje-exito {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #10b981;
+            color: white;
+            padding: 14px 22px;
+            border-radius: 8px;
+            font-weight: bold;
+            box-shadow: 0 6px 18px rgba(16,185,129,0.4);
+            z-index: 9999;
+            animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn { from { transform: translateX(400px); } to { transform: translateX(0); } }
+    </style>
+</head>
+<body>
+
+<div class="layout">
+
+    <div class="sidebar">
+        <h2>📚 Panel del Profesor</h2>
+        <p style="font-size: 0.8rem; color: #6b7280; margin-bottom: 12px;">
+            Evaluación de Computación - Cuarto Bimestre
+        </p>
+
+        <select class="filtro-grado" id="filtro-grado" onchange="cargarLista()">
+            <option value="">Todos los grados</option>
+            <option value="2">Segundo Primaria</option>
+            <option value="3">Tercer Primaria</option>
+            <option value="4">Cuarto Primaria</option>
+            <option value="5">Quinto Primaria</option>
+            <option value="6">Sexto Primaria</option>
+        </select>
+
+        <button class="btn-masivo" style="width:100%; padding:10px; font-size:0.9rem; margin-bottom:12px;" onclick="generarInvitacionesMasivas()">
+            📄 Generar Invitaciones del Grado
+        </button>
+
+        <div id="lista-estudiantes"></div>
+    </div>
+
+    <div class="contenido" id="contenido">
+        <div class="placeholder">
+            👈 Selecciona un estudiante de la lista para revisar su examen.
+        </div>
+    </div>
+
+</div>
+
+<script>
+    const SUPABASE_URL = 'https://eqhlrmonlrdgskjsiueb.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxaGxybW9ubHJkZ3NranNpdWViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAxMTYwMzMsImV4cCI6MjEwNTY5MjAzM30.YJpjDzOK19QMNW22qDrgIZzO5sRbmSPqtBFds1YpbJQ';
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // ⚠️ CAMBIA ESTA URL POR LA DE TU GITHUB PAGES
+    const URL_BASE_EXAMEN = 'https://jp-zeu-2007.github.io/EXAMEN-COMPUTACION/';
+
+    let estudianteActual = null;
+    let datosExamenActual = null;
+    let listaEstudiantesCache = [];
+
+    function obtenerNombreGrado(gradoNum) {
+        switch(String(gradoNum).trim()) {
+            case '2': return 'Segundo Primaria';
+            case '3': return 'Tercer Primaria';
+            case '4': return 'Cuarto Primaria';
+            case '5': return 'Quinto Primaria';
+            case '6': return 'Sexto Primaria';
+            default: return `${gradoNum}° Primaria`;
+        }
+    }
+
+    function mostrarExito(msg) {
+        const div = document.createElement('div');
+        div.className = 'mensaje-exito';
+        div.textContent = msg;
+        document.body.appendChild(div);
+        setTimeout(() => div.remove(), 3000);
+    }
+
+    // Cargar lista de estudiantes que ya enviaron examen
+    async function cargarLista() {
+        const gradoFiltro = document.getElementById('filtro-grado').value;
+
+        let query = _supabase
+            .from('resultados_evaluacion')
+            .select('*')
+            .order('fecha_envio', { ascending: false });
+
+        const { data: resultados, error } = await query;
+        if (error) { console.error(error); return; }
+
+        const contenedor = document.getElementById('lista-estudiantes');
+        contenedor.innerHTML = '';
+        listaEstudiantesCache = [];
+
+        for (const r of resultados) {
+            const { data: est } = await _supabase
+                .from('estudiantes')
+                .select('*')
+                .eq('codigo', r.codigo_estudiante)
+                .single();
+
+            if (!est) continue;
+            if (gradoFiltro && String(est.grado) !== gradoFiltro) continue;
+
+            listaEstudiantesCache.push({ ...est, ...r });
+
+            const nombre = `${est.nombres} ${est.apellidos}`;
+            const clase = r.revisado_por_profesor ? 'revisado' : 'pendiente';
+            const total = r.punteo_total + (r.punteo_extra || 0);
+
+            contenedor.innerHTML += `
+                <div class="estudiante ${clase}" onclick="cargarExamen('${est.codigo}')">
+                    <strong>${nombre}</strong>
+                    <small>${obtenerNombreGrado(est.grado)} — ${total}/35 pts</small>
+                    <small>${r.revisado_por_profesor ? '✅ Revisado' : '⏳ Pendiente'}</small>
+                </div>
+            `;
+        }
+
+        if (listaEstudiantesCache.length === 0) {
+            contenedor.innerHTML = '<p style="color:#9ca3af; text-align:center;">No hay exámenes enviados aún.</p>';
+        }
+    }
+
+    // Cargar examen de un estudiante
+    async function cargarExamen(codigo) {
+        const { data: detalle } = await _supabase
+            .from('detalle_respuestas')
+            .select('*')
+            .eq('codigo_estudiante', codigo)
+            .maybeSingle();
+
+        const { data: resumen } = await _supabase
+            .from('resultados_evaluacion')
+            .select('*')
+            .eq('codigo_estudiante', codigo)
+            .single();
+
+        const { data: est } = await _supabase
+            .from('estudiantes')
+            .select('*')
+            .eq('codigo', codigo)
+            .single();
+
+        if (!detalle || !resumen || !est) {
+            alert('No se encontraron los datos completos de este estudiante.');
+            return;
+        }
+
+        estudianteActual = { ...est, ...resumen };
+        datosExamenActual = { ...detalle, ...resumen };
+
+        renderizarExamen();
+    }
+
+    // Renderizar examen
+    function renderizarExamen() {
+        const d = datosExamenActual;
+        const e = estudianteActual;
+
+        const serie1 = d.serie1_json || [];
+        const serie2 = d.serie2_json || [];
+        const serie3 = d.serie3_json || [];
+        const serie4 = d.serie4_json || {};
+        const extra = d.extra_json || [];
+
+        const html = `
+            <div class="examen" id="examen-pdf">
+
+                <div style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px;">
+                    <h2 style="margin: 0; color: #000;">COLEGIO MIXTO NUEVO SAN CRISTÓBAL</h2>
+                    <p style="margin: 4px 0; color: #000;">CUARTO BIMESTRE 2026 - ÁREA: Computación</p>
+                    <p style="margin: 4px 0; color: #000;">PROFE: Josué Pineda | TIEMPO: 50 min | <strong>40 pts.</strong></p>
+                </div>
+
+                <table style="width: 100%; margin-top: 14px; border-collapse: collapse;">
+                    <tr>
+                        <td style="border: 1px solid #000; padding: 8px;"><strong>Nombres:</strong> ${e.nombres}</td>
+                        <td style="border: 1px solid #000; padding: 8px;"><strong>Apellidos:</strong> ${e.apellidos}</td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #000; padding: 8px;"><strong>Grado:</strong> ${obtenerNombreGrado(e.grado)}</td>
+                        <td style="border: 1px solid #000; padding: 8px;"><strong>Fecha:</strong> ${new Date(d.fecha_envio).toLocaleDateString('es-GT')}</td>
+                    </tr>
+                </table>
+
+                <h3 style="margin-top: 18px; color: #000;">INSTRUCCIONES GENERALES:</h3>
+                <ul style="color: #000; font-size: 0.9rem;">
+                    <li>Lea cada uno de los enunciados que se presentan en cada serie.</li>
+                    <li>Revise su examen antes de entregarlo.</li>
+                    <li>Recuerde trabajar con letra clara, sin tachones ni manchones.</li>
+                    <li>Evite el uso de corrector.</li>
+                    <li>Respuestas escritas con lapicero color azul o color negro únicamente.</li>
+                </ul>
+
+                <!-- SERIE I -->
+                <div style="border: 1px solid #000; padding: 14px; margin-top: 16px; page-break-inside: avoid;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3 style="margin: 0; color: #000;">I SERIE — VALOR 10 PTS</h3>
+                        <span class="punteo-serie">${d.punteo_s1}/10</span>
+                    </div>
+                    <p style="margin: 6px 0; color: #000;"><strong>Instrucciones:</strong> Lee cada frase. Selecciona V si es verdad o F si es mentira.</p>
+                    <ol style="color: #000; font-size: 0.9rem;">
+                        ${serie1.map(p => `
+                            <li style="margin-bottom: 6px;">
+                                ${p.texto}<br>
+                                <strong>Respuesta:</strong> 
+                                <span style="color: ${p.correcto ? '#059669' : '#dc2626'}; font-weight: bold;">
+                                    ${p.respuesta_alumno} ${p.correcto ? '✓' : `✗ (Correcta: ${p.respuesta_correcta})`}
+                                </span>
+                            </li>
+                        `).join('')}
+                    </ol>
+                </div>
+
+                <!-- SERIE II -->
+                <div style="border: 1px solid #000; padding: 14px; margin-top: 16px; page-break-inside: avoid;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3 style="margin: 0; color: #000;">II SERIE — VALOR 10 PTS</h3>
+                        <span class="punteo-serie">${d.punteo_s2}/10</span>
+                    </div>
+                    <p style="margin: 6px 0; color: #000;"><strong>Instrucciones:</strong> Lee cada pregunta y marca la respuesta correcta.</p>
+                    ${serie2.map((p, i) => `
+                        <div style="margin-bottom: 10px; color: #000; font-size: 0.9rem;">
+                            <strong>${i+1}. ${p.texto}</strong>
+                            <ul style="margin: 4px 0; padding-left: 20px;">
+                                ${(p.opciones_mostradas || []).map(op => `
+                                    <li style="color: ${op.letra === p.letra_correcta ? '#059669' : (op.letra === p.letra_elegida ? '#dc2626' : '#000')};">
+                                        ${op.letra}) ${op.texto}
+                                        ${op.letra === p.letra_elegida ? ' ← (Alumno)' : ''}
+                                        ${op.letra === p.letra_correcta ? ' ✓' : ''}
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        </div>
+                    `).join('')}
+                </div>
+
+                <!-- SERIE III -->
+                <div style="border: 1px solid #000; padding: 14px; margin-top: 16px; page-break-inside: avoid;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3 style="margin: 0; color: #000;">III SERIE — VALOR 10 PTS</h3>
+                        <span class="punteo-serie">${d.punteo_s3}/10</span>
+                    </div>
+                    <p style="margin: 6px 0; color: #000;"><strong>Instrucciones:</strong> Une cada concepto con su definición.</p>
+                    ${serie3.map((c, i) => `
+                        <div style="margin-bottom: 6px; font-size: 0.9rem; color: ${c.correcto ? '#000' : '#dc2626'};">
+                            <strong>${i+1}.</strong> ${c.izquierda} → ${c.derecha} ${c.correcto ? '✓' : '✗'}
+                        </div>
+                    `).join('')}
+                </div>
+
+                <!-- SERIE IV -->
+                <div style="border: 1px solid #000; padding: 14px; margin-top: 16px; page-break-inside: avoid;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3 style="margin: 0; color: #000;">IV SERIE — VALOR 10 PTS</h3>
+                        <div>
+                            <input type="number" min="0" max="10" class="input-punteo" id="input-punteo-s4" value="${d.punteo_s4 || 0}">
+                            <strong style="color: #000;">/10</strong>
+                        </div>
+                    </div>
+                    <p style="margin: 6px 0; color: #000;"><strong>Instrucciones:</strong> Práctica en WordPad.</p>
+                    <div style="text-align: center; margin-top: 10px;">
+                        <img src="${serie4.url_captura || d.captura_practica || ''}" style="max-width: 100%; border: 1px solid #999;">
+                    </div>
+                </div>
+
+                <!-- SERIE EXTRA -->
+                ${extra.length > 0 ? `
+                <div style="border: 1px solid #000; padding: 14px; margin-top: 16px; page-break-inside: avoid;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3 style="margin: 0; color: #000;">SERIE EXTRA — VALOR +5 PTS</h3>
+                        <div>
+                            <input type="number" min="0" max="5" class="input-punteo" id="input-punteo-extra" value="${d.punteo_extra || 0}">
+                            <strong style="color: #000;">/5</strong>
+                        </div>
+                    </div>
+                    <p style="margin: 6px 0; color: #000;"><strong>Instrucciones:</strong> Ordena las palabras para formar la oración correcta.</p>
+                    ${extra.map((p, i) => `
+                        <div style="margin-bottom: 8px; font-size: 0.9rem; color: ${p.correcto ? '#000' : '#dc2626'};">
+                            <strong>${i+1}.</strong> 
+                            <em>${p.oracion_alumno || '(sin responder)'}</em>
+                            ${p.correcto ? ' ✓' : ` ✗ (Correcta: ${p.oracion_correcta})`}
+                        </div>
+                    `).join('')}
+                </div>
+                ` : ''}
+
+                <p style="text-align: center; margin-top: 24px; font-style: italic; color: #000;">
+                    "Tus pequeñas acciones de hoy pueden crear grandes cambios mañana."
+                </p>
+            </div>
+
+            <div class="barra-acciones">
+                <button class="btn-guardar" onclick="guardarCalificacion()">💾 Guardar Calificación</button>
+                <button class="btn-pdf" onclick="descargarPDF()">📄 Descargar PDF</button>
+                <button class="btn-qr" onclick="generarInvitacion('${e.codigo}')">📱 Generar Invitación (QR + PDF)</button>
+            </div>
+        `;
+
+        document.getElementById('contenido').innerHTML = html;
+    }
+
+    // Guardar calificación (solo actualiza Serie IV y Extra)
+    async function guardarCalificacion() {
+        const punteoS4 = parseInt(document.getElementById('input-punteo-s4').value) || 0;
+        const inputExtra = document.getElementById('input-punteo-extra');
+        const punteoExtra = inputExtra ? (parseInt(inputExtra.value) || 0) : (datosExamenActual.punteo_extra || 0);
+
+        const punteoTotal = datosExamenActual.punteo_s1 + datosExamenActual.punteo_s2 + datosExamenActual.punteo_s3 + punteoS4;
+
+        const { error } = await _supabase
+            .from('resultados_evaluacion')
+            .update({
+                punteo_s4: punteoS4,
+                punteo_extra: punteoExtra,
+                punteo_total: punteoTotal,
+                revisado_por_profesor: true,
+                fecha_revision: new Date().toISOString()
+            })
+            .eq('codigo_estudiante', estudianteActual.codigo);
+
+        if (error) {
+            alert('Error al guardar: ' + error.message);
+            return;
+        }
+
+        mostrarExito('✅ Calificación guardada');
+        datosExamenActual.punteo_s4 = punteoS4;
+        datosExamenActual.punteo_extra = punteoExtra;
+        datosExamenActual.punteo_total = punteoTotal;
+        cargarLista();
+    }
+
+    // Descargar PDF del examen
+    function descargarPDF() {
+        const elemento = document.getElementById('examen-pdf');
+        html2pdf().set({
+            margin: 10,
+            filename: `examen_${estudianteActual.codigo}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+            jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait' }
+        }).from(elemento).save();
+    }
+
+    // Generar invitación individual (QR + PDF)
+    async function generarInvitacion(codigoEstudiante) {
+        const { data: est } = await _supabase
+            .from('estudiantes')
+            .select('*')
+            .eq('codigo', codigoEstudiante)
+            .single();
+
+        if (!est) { alert('No se encontró el estudiante.'); return; }
+
+        const enlace = `${URL_BASE_EXAMEN}?codigo=${encodeURIComponent(est.codigo)}`;
+
+        const qrDataURL = await QRCode.toDataURL(enlace, {
+            width: 300, margin: 2,
+            color: { dark: '#000000', light: '#ffffff' }
+        });
+
+        const html = `
+            <div id="invitacion-pdf" style="
+                font-family: Arial, sans-serif; padding: 40px; max-width: 600px; margin: auto;
+                border: 3px solid #4f46e5; border-radius: 12px; background: #fff; color: #000;
+            ">
+                <div style="text-align: center; border-bottom: 2px solid #4f46e5; padding-bottom: 12px;">
+                    <h1 style="margin: 0; color: #4f46e5;">🎓 Invitación al Examen</h1>
+                    <p style="margin: 4px 0; font-size: 14px; color: #666;">Evaluación Virtual de Computación</p>
+                </div>
+                <div style="margin-top: 20px; text-align: center;">
+                    <p style="font-size: 14px; color: #666; margin-bottom: 6px;">Dirigido a:</p>
+                    <h2 style="margin: 0; font-size: 22px;">${est.nombres} ${est.apellidos}</h2>
+                    <p style="margin: 4px 0; color: #888;">${obtenerNombreGrado(est.grado)}</p>
+                </div>
+                <div style="margin-top: 24px; padding: 14px; background: #eef2ff; border-radius: 8px;">
+                    <p style="margin: 0; font-size: 14px; color: #333;">
+                        <strong>Descripción:</strong> Este enlace te llevará directamente al examen de 
+                        Computación del Cuarto Bimestre. Solo debes escanear el código QR o abrir el 
+                        enlace, y podrás comenzar tu evaluación de forma automática. 
+                        Recuerda leer bien cada instrucción antes de responder.
+                    </p>
+                </div>
+                <div style="text-align: center; margin-top: 24px;">
+                    <p style="margin-bottom: 10px; font-weight: bold;">📱 Escanea este código QR:</p>
+                    <img src="${qrDataURL}" style="width: 240px; height: 240px;">
+                </div>
+                <div style="margin-top: 20px; text-align: center;">
+                    <p style="font-size: 12px; color: #666; margin: 4px 0;">O abre directamente este enlace:</p>
+                    <p style="font-size: 12px; color: #4f46e5; word-break: break-all;">${enlace}</p>
+                </div>
+                <p style="text-align: center; margin-top: 24px; font-style: italic; color: #888; font-size: 12px;">
+                    "Tus pequeñas acciones de hoy pueden crear grandes cambios mañana."
+                </p>
+            </div>
+        `;
+
+        const contenedor = document.createElement('div');
+        contenedor.innerHTML = html;
+        contenedor.style.position = 'fixed';
+        contenedor.style.left = '-9999px';
+        document.body.appendChild(contenedor);
+
+        await html2pdf().set({
+            margin: 10,
+            filename: `invitacion_${est.codigo}_${est.nombres}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true },
+            jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait' }
+        }).from(contenedor.querySelector('#invitacion-pdf')).save();
+
+        document.body.removeChild(contenedor);
+        mostrarExito('📱 Invitación generada');
+    }
+
+    // Generar invitaciones masivas (todo el grado filtrado)
+    async function generarInvitacionesMasivas() {
+        const gradoFiltro = document.getElementById('filtro-grado').value;
+        if (!gradoFiltro) {
+            alert('Por favor, selecciona un grado en el filtro antes de generar invitaciones masivas.');
+            return;
+        }
+
+        const { data: estudiantes } = await _supabase
+            .from('estudiantes')
+            .select('*')
+            .eq('grado', gradoFiltro);
+
+        if (!estudiantes || estudiantes.length === 0) {
+            alert('No hay estudiantes en ese grado.');
+            return;
+        }
+
+        let htmlTodas = '';
+        for (const est of estudiantes) {
+            const enlace = `${URL_BASE_EXAMEN}?codigo=${encodeURIComponent(est.codigo)}`;
+            const qrDataURL = await QRCode.toDataURL(enlace, { width: 300, margin: 2 });
+
+            htmlTodas += `
+                <div style="
+                    font-family: Arial; padding: 40px; page-break-after: always;
+                    border: 3px solid #4f46e5; border-radius: 12px; margin: 20px 0; color: #000;
+                ">
+                    <div style="text-align: center; border-bottom: 2px solid #4f46e5; padding-bottom: 12px;">
+                        <h1 style="margin: 0; color: #4f46e5;">🎓 Invitación al Examen</h1>
+                        <p style="margin: 4px 0; font-size: 14px; color: #666;">Evaluación Virtual de Computación</p>
+                    </div>
+                    <div style="text-align: center; margin-top: 20px;">
+                        <h2 style="margin: 0;">${est.nombres} ${est.apellidos}</h2>
+                        <p style="color: #888;">${obtenerNombreGrado(est.grado)}</p>
+                    </div>
+                    <div style="margin-top: 24px; padding: 14px; background: #eef2ff; border-radius: 8px;">
+                        <p style="margin: 0; font-size: 14px; color: #333;">
+                            <strong>Descripción:</strong> Este enlace te llevará directamente al examen de 
+                            Computación. Solo debes escanear el código QR o abrir el enlace.
+                        </p>
+                    </div>
+                    <div style="text-align: center; margin-top: 24px;">
+                        <img src="${qrDataURL}" style="width: 220px;">
+                    </div>
+                    <p style="text-align: center; font-size: 12px; color: #4f46e5; word-break: break-all;">${enlace}</p>
+                </div>
+            `;
+        }
+
+        const contenedor = document.createElement('div');
+        contenedor.innerHTML = htmlTodas;
+        contenedor.style.position = 'fixed';
+        contenedor.style.left = '-9999px';
+        document.body.appendChild(contenedor);
+
+        await html2pdf().set({
+            margin: 10,
+            filename: `invitaciones_${gradoFiltro}to_grado.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true },
+            jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait' }
+        }).from(contenedor).save();
+
+        document.body.removeChild(contenedor);
+        mostrarExito('📄 Invitaciones masivas generadas');
+    }
+
+    // Cargar al inicio
+    cargarLista();
+</script>
+
+</body>
+</html>
