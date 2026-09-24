@@ -184,6 +184,11 @@
     const URL_BASE_EXAMEN = 'https://jp-zeu-2007.github.io/PAGINA-EXAMENES/';
     // ================================================================
 
+    // ================== URL DEL VISOR PARA PADRES ==================
+    // Apunta a la carpeta /ver-examen/ que contiene el index.html
+    const URL_VER_EXAMEN = 'https://jp-zeu-2007.github.io/PAGINA-EXAMENES/ver-examen/';
+    // ===============================================================
+
     // ================== LOGO ==================
     const LOGO_URL = 'https://res.cloudinary.com/dmis07evg/image/upload/v1790218589/logonsc_ke0t6f.png';
 
@@ -518,7 +523,6 @@
     async function descargarPDF() {
         const elemento = document.getElementById('examen-pdf');
         
-        // Esperar un poco para que cargue el logo
         await new Promise(r => setTimeout(r, 500));
 
         html2pdf().set({
@@ -533,20 +537,94 @@
     // ==================== GENERAR INVITACIÓN INDIVIDUAL ====================
     async function generarInvitacion(codigoEstudiante) {
         try {
-            const { data: est, error } = await _supabase
+            // 1) Obtener datos del estudiante
+            const { data: est, error: errorEst } = await _supabase
                 .from('estudiantes')
                 .select('*')
                 .eq('codigo', codigoEstudiante)
                 .single();
 
-            if (error || !est) {
+            if (errorEst || !est) {
                 alert('❌ No se encontró el estudiante.');
                 return;
             }
 
-            const enlace = `${URL_BASE_EXAMEN}?codigo=${encodeURIComponent(est.codigo)}`;
+            // 2) Obtener datos del examen
+            const { data: examen, error: errorExamen } = await _supabase
+                .from('resultados_evaluacion')
+                .select('*')
+                .eq('codigo_estudiante', codigoEstudiante)
+                .maybeSingle();
 
-            // Generar QR: intentar con librería, si falla usar API externa
+            if (errorExamen || !examen) {
+                alert('❌ Este estudiante aún no ha enviado su examen.');
+                return;
+            }
+
+            if (!examen.revisado_por_profesor) {
+                const confirmar = confirm(
+                    '⚠️ Este examen aún NO ha sido calificado por ti.\n\n' +
+                    '¿Deseas continuar de todos modos?'
+                );
+                if (!confirmar) return;
+            }
+
+            // 3) Asegurar que el examen esté cargado en pantalla
+            if (!estudianteActual || estudianteActual.codigo !== codigoEstudiante) {
+                await cargarExamen(codigoEstudiante);
+                await new Promise(r => setTimeout(r, 600));
+            }
+
+            // 4) Generar el PDF
+            alert('📄 Generando PDF y subiéndolo a la nube. Espera un momento...');
+
+            const elementoExamen = document.getElementById('examen-pdf');
+            const pdfBlob = await html2pdf().set({
+                margin: 10,
+                filename: `examen_${est.codigo}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+                jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait' }
+            }).from(elementoExamen).outputPdf('blob');
+
+            // 5) Subir el PDF a Supabase Storage
+            const timestamp = Date.now();
+            const nombreArchivo = `examen_${est.codigo}_${timestamp}.pdf`;
+
+            const { error: uploadError } = await _supabase
+                .storage
+                .from('examenes-pdf')
+                .upload(nombreArchivo, pdfBlob, {
+                    contentType: 'application/pdf',
+                    cacheControl: '3600',
+                    upsert: false
+                });
+
+            if (uploadError) {
+                throw new Error('Error al subir el PDF: ' + uploadError.message);
+            }
+
+            // 6) Obtener URL pública
+            const { data: urlData } = _supabase
+                .storage
+                .from('examenes-pdf')
+                .getPublicUrl(nombreArchivo);
+
+            const pdfPublicURL = urlData.publicUrl;
+
+            // 7) Guardar URL en la base de datos
+            await _supabase
+                .from('resultados_evaluacion')
+                .update({
+                    pdf_url: pdfPublicURL,
+                    pdf_subido_en: new Date().toISOString()
+                })
+                .eq('codigo_estudiante', codigoEstudiante);
+
+            // 8) Construir URL de ver-examen
+            const enlace = `${URL_VER_EXAMEN}?codigo=${encodeURIComponent(est.codigo)}`;
+
+            // 9) Generar QR
             let qrDataURL;
             if (typeof QRCode !== 'undefined' && QRCode.toDataURL) {
                 qrDataURL = await QRCode.toDataURL(enlace, {
@@ -557,25 +635,26 @@
                 qrDataURL = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(enlace)}`;
             }
 
+            // 10) Generar PDF de invitación con QR
             const html = `
                 <div id="invitacion-pdf" style="
                     font-family: Arial, sans-serif; padding: 40px; max-width: 600px; margin: auto;
                     border: 3px solid #4f46e5; border-radius: 12px; background: #fff; color: #000;
                 ">
                     <div style="text-align: center; border-bottom: 2px solid #4f46e5; padding-bottom: 12px;">
-                        <h1 style="margin: 0; color: #4f46e5;">🎓 Invitación al Examen</h1>
+                        <h1 style="margin: 0; color: #4f46e5;">🎓 Consulta del Examen</h1>
                         <p style="margin: 4px 0; font-size: 14px; color: #666;">Evaluación Virtual de Computación</p>
                     </div>
                     <div style="margin-top: 20px; text-align: center;">
-                        <p style="font-size: 14px; color: #666; margin-bottom: 6px;">Dirigido a:</p>
+                        <p style="font-size: 14px; color: #666; margin-bottom: 6px;">Estudiante:</p>
                         <h2 style="margin: 0; font-size: 22px;">${est.nombres} ${est.apellidos}</h2>
                         <p style="margin: 4px 0; color: #888;">${obtenerNombreGrado(est.grado)}</p>
                     </div>
                     <div style="margin-top: 24px; padding: 14px; background: #eef2ff; border-radius: 8px;">
                         <p style="margin: 0; font-size: 14px; color: #333;">
-                            <strong>Descripción:</strong> Este enlace te llevará directamente al examen de 
-                            Computación del Cuarto Bimestre. Solo debes escanear el código QR o abrir el 
-                            enlace, y podrás comenzar tu evaluación de forma automática.
+                            <strong>Descripción:</strong> Escanea este código QR o abre el enlace para 
+                            consultar el examen de Computación del Cuarto Bimestre, con sus respuestas 
+                            y el punteo obtenido.
                         </p>
                     </div>
                     <div style="text-align: center; margin-top: 24px;">
@@ -609,7 +688,7 @@
             }).from(contenedor.querySelector('#invitacion-pdf')).save();
 
             document.body.removeChild(contenedor);
-            mostrarExito('📱 Invitación generada');
+            mostrarExito('📱 Invitación generada y PDF subido');
 
         } catch (error) {
             console.error('Error al generar invitación:', error);
@@ -637,7 +716,7 @@
 
         let htmlTodas = '';
         for (const est of estudiantes) {
-            const enlace = `${URL_BASE_EXAMEN}?codigo=${encodeURIComponent(est.codigo)}`;
+            const enlace = `${URL_VER_EXAMEN}?codigo=${encodeURIComponent(est.codigo)}`;
 
             let qrDataURL;
             if (typeof QRCode !== 'undefined' && QRCode.toDataURL) {
@@ -652,7 +731,7 @@
                     border: 3px solid #4f46e5; border-radius: 12px; margin: 20px 0; color: #000;
                 ">
                     <div style="text-align: center; border-bottom: 2px solid #4f46e5; padding-bottom: 12px;">
-                        <h1 style="margin: 0; color: #4f46e5;">🎓 Invitación al Examen</h1>
+                        <h1 style="margin: 0; color: #4f46e5;">🎓 Consulta del Examen</h1>
                         <p style="margin: 4px 0; font-size: 14px; color: #666;">Evaluación Virtual de Computación</p>
                     </div>
                     <div style="text-align: center; margin-top: 20px;">
@@ -661,8 +740,8 @@
                     </div>
                     <div style="margin-top: 24px; padding: 14px; background: #eef2ff; border-radius: 8px;">
                         <p style="margin: 0; font-size: 14px; color: #333;">
-                            <strong>Descripción:</strong> Este enlace te llevará directamente al examen de 
-                            Computación. Solo debes escanear el código QR o abrir el enlace.
+                            <strong>Descripción:</strong> Escanea este QR para consultar el examen de 
+                            Computación con sus respuestas y punteo.
                         </p>
                     </div>
                     <div style="text-align: center; margin-top: 24px;">
