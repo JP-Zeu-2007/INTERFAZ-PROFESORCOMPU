@@ -6,6 +6,7 @@
     <title>Panel del Profesor - Evaluación de Computación</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js"></script>
     <style>
         * { box-sizing: border-box; }
@@ -247,31 +248,51 @@
     }
 
     async function cargarExamen(codigo) {
-        const { data: detalle } = await _supabase
-            .from('detalle_respuestas')
-            .select('*')
-            .eq('codigo_estudiante', codigo)
-            .maybeSingle();
-
-        const { data: resumen } = await _supabase
-            .from('resultados_evaluacion')
-            .select('*')
-            .eq('codigo_estudiante', codigo)
-            .single();
-
         const { data: est } = await _supabase
             .from('estudiantes')
             .select('*')
             .eq('codigo', codigo)
             .single();
 
-        if (!detalle || !resumen || !est) {
-            alert('No se encontraron los datos completos de este estudiante.');
+        const { data: resumen } = await _supabase
+            .from('resultados_evaluacion')
+            .select('*')
+            .eq('codigo_estudiante', codigo)
+            .maybeSingle();
+
+        // Detalle puede tener duplicados → tomar el más reciente
+        const { data: detalle } = await _supabase
+            .from('detalle_respuestas')
+            .select('*')
+            .eq('codigo_estudiante', codigo)
+            .order('fecha_envio', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+        if (!est) {
+            alert('❌ No se encontró el estudiante.');
             return;
         }
 
+        if (!resumen) {
+            alert('❌ Este estudiante no tiene un examen registrado.');
+            return;
+        }
+
+        const detalleSeguro = detalle || {
+            serie1_json: [],
+            serie2_json: [],
+            serie3_json: [],
+            serie4_json: {},
+            extra_json: []
+        };
+
         estudianteActual = { ...est, ...resumen };
-        datosExamenActual = { ...detalle, ...resumen };
+        datosExamenActual = { ...detalleSeguro, ...resumen };
+
+        if (!detalle) {
+            console.warn('⚠️ Este examen no tiene detalle_respuestas. Solo se verán los punteos.');
+        }
 
         renderizarExamen();
     }
@@ -358,7 +379,7 @@
                     </div>
                     <p style="margin: 6px 0; color: #000;"><strong>Instrucciones:</strong> Lee cada frase. Selecciona V si es verdad o F si es mentira.</p>
                     <ol style="color: #000; font-size: 0.9rem;">
-                        ${serie1.map(pr => `
+                        ${serie1.length === 0 ? '<li><em>Sin datos de respuestas</em></li>' : serie1.map(pr => `
                             <li style="margin-bottom: 6px;">
                                 ${pr.texto}<br>
                                 <strong>Respuesta:</strong> 
@@ -376,7 +397,7 @@
                         <span class="punteo-serie">${p.s2}/10</span>
                     </div>
                     <p style="margin: 6px 0; color: #000;"><strong>Instrucciones:</strong> Lee cada pregunta y marca la respuesta correcta.</p>
-                    ${serie2.map((pr, i) => `
+                    ${serie2.length === 0 ? '<p><em>Sin datos de respuestas</em></p>' : serie2.map((pr, i) => `
                         <div style="margin-bottom: 10px; color: #000; font-size: 0.9rem;">
                             <strong>${i+1}. ${pr.texto}</strong>
                             <ul style="margin: 4px 0; padding-left: 20px;">
@@ -398,7 +419,7 @@
                         <span class="punteo-serie">${p.s3}/10</span>
                     </div>
                     <p style="margin: 6px 0; color: #000;"><strong>Instrucciones:</strong> Une cada concepto con su definición.</p>
-                    ${serie3.map((c, i) => `
+                    ${serie3.length === 0 ? '<p><em>Sin datos de respuestas</em></p>' : serie3.map((c, i) => `
                         <div style="margin-bottom: 6px; font-size: 0.9rem; color: ${c.correcto ? '#000' : '#dc2626'};">
                             <strong>${i+1}.</strong> ${c.izquierda} → ${c.derecha} ${c.correcto ? '✓' : '✗'}
                         </div>
@@ -507,7 +528,7 @@
         }).from(elemento).save();
     }
 
-    // ==================== GENERAR INVITACIÓN (AHORA SUBE PNG) ====================
+    // ==================== GENERAR INVITACIÓN (SUBE PNG) ====================
     async function generarInvitacion(codigoEstudiante) {
         try {
             const { data: est, error: errorEst } = await _supabase
@@ -549,7 +570,6 @@
 
             const elementoExamen = document.getElementById('examen-pdf');
 
-            // Convertir a imagen PNG
             const canvas = await html2canvas(elementoExamen, {
                 scale: 2,
                 useCORS: true,
