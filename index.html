@@ -6,7 +6,6 @@
     <title>Panel del Profesor - Evaluación de Computación</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
-    <!-- QR con CDN alternativo + fallback -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js"></script>
     <style>
         * { box-sizing: border-box; }
@@ -18,7 +17,6 @@
         }
         .layout { display: flex; height: 100vh; }
 
-        /* Sidebar */
         .sidebar {
             width: 340px;
             background: #fff;
@@ -49,7 +47,6 @@
         .estudiante strong { display: block; font-size: 0.9rem; }
         .estudiante small { color: #6b7280; font-size: 0.75rem; }
 
-        /* Contenido */
         .contenido {
             flex: 1;
             padding: 24px;
@@ -164,7 +161,6 @@
 </div>
 
 <script>
-    // ===================== CONTRASEÑA DEL PROFESOR =====================
     const CONTRASENA_PROFESOR = 'profe2026';
     
     (function() {
@@ -174,22 +170,13 @@
             throw new Error('Acceso denegado');
         }
     })();
-    // ===================================================================
 
     const SUPABASE_URL = 'https://eqhlrmonlrdgskjsiueb.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxaGxybW9ubHJkZ3NranNpdWViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAxMTYwMzMsImV4cCI6MjEwNTY5MjAzM30.YJpjDzOK19QMNW22qDrgIZzO5sRbmSPqtBFds1YpbJQ';
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // ================== URL DEL EXAMEN DEL ALUMNO ==================
     const URL_BASE_EXAMEN = 'https://jp-zeu-2007.github.io/PAGINA-EXAMENES/';
-    // ================================================================
-
-    // ================== URL DEL VISOR PARA PADRES ==================
-    // Apunta a la carpeta /ver-examen/ que contiene el index.html
     const URL_VER_EXAMEN = 'https://jp-zeu-2007.github.io/PAGINA-EXAMENES/ver-examen/';
-    // ===============================================================
-
-    // ================== LOGO ==================
     const LOGO_URL = 'https://res.cloudinary.com/dmis07evg/image/upload/v1790218589/logonsc_ke0t6f.png';
 
     let estudianteActual = null;
@@ -215,7 +202,6 @@
         setTimeout(() => div.remove(), 3000);
     }
 
-    // ==================== LISTA DE ESTUDIANTES ====================
     async function cargarLista() {
         const gradoFiltro = document.getElementById('filtro-grado').value;
 
@@ -260,7 +246,6 @@
         }
     }
 
-    // ==================== CARGAR EXAMEN ====================
     async function cargarExamen(codigo) {
         const { data: detalle } = await _supabase
             .from('detalle_respuestas')
@@ -291,7 +276,6 @@
         renderizarExamen();
     }
 
-    // ==================== CALCULAR PUNTEOS ====================
     function calcularPunteos(d) {
         const s1 = d.punteo_s1 || 0;
         const s2 = d.punteo_s2 || 0;
@@ -299,13 +283,12 @@
         const s4 = d.punteo_s4 || 0;
         const extra = d.punteo_extra || 0;
 
-        const base = s1 + s2 + s3 + s4;   // Sobre 40
-        const total = base + extra;        // Puede pasar de 40 por extras
+        const base = s1 + s2 + s3 + s4;
+        const total = base + extra;
 
         return { s1, s2, s3, s4, extra, base, total };
     }
 
-    // ==================== RENDERIZAR EXAMEN ====================
     function renderizarExamen() {
         const d = datosExamenActual;
         const e = estudianteActual;
@@ -321,7 +304,6 @@
         const html = `
             <div class="examen" id="examen-pdf">
 
-                <!-- ENCABEZADO CON LOGO A LA DERECHA -->
                 <div style="position: relative; text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; padding-right: 110px; min-height: 100px;">
                     <img src="${LOGO_URL}"
                          crossorigin="anonymous"
@@ -331,7 +313,6 @@
                     <p style="margin: 4px 0; color: #000;">PROFE: Josué Pineda | TIEMPO: 50 min | <strong>40 pts.</strong></p>
                 </div>
 
-                <!-- PUNTEO TOTAL DEBAJO DEL LOGO (arriba a la derecha) -->
                 <div style="text-align: right; margin-top: 8px; margin-bottom: 6px;">
                     <span style="
                         display: inline-block;
@@ -370,8 +351,7 @@
                     <li>Respuestas escritas con lapicero color azul o color negro únicamente.</li>
                 </ul>
 
-                <!-- SERIE I -->
-                <div style="border: 1px solid #000; padding: 14px; margin-top: 16px; page-break-inside: avoid;">
+                <div style="border: 1px solid #000; padding: 14px; margin-top: 16px;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <h3 style="margin: 0; color: #000;">I SERIE — VALOR 10 PTS</h3>
                         <span class="punteo-serie">${p.s1}/10</span>
@@ -390,8 +370,7 @@
                     </ol>
                 </div>
 
-                <!-- SERIE II -->
-                <div style="border: 1px solid #000; padding: 14px; margin-top: 16px; page-break-inside: avoid;">
+                <div style="border: 1px solid #000; padding: 14px; margin-top: 16px;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <h3 style="margin: 0; color: #000;">II SERIE — VALOR 10 PTS</h3>
                         <span class="punteo-serie">${p.s2}/10</span>
@@ -413,8 +392,7 @@
                     `).join('')}
                 </div>
 
-                <!-- SERIE III -->
-                <div style="border: 1px solid #000; padding: 14px; margin-top: 16px; page-break-inside: avoid;">
+                <div style="border: 1px solid #000; padding: 14px; margin-top: 16px;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <h3 style="margin: 0; color: #000;">III SERIE — VALOR 10 PTS</h3>
                         <span class="punteo-serie">${p.s3}/10</span>
@@ -427,8 +405,7 @@
                     `).join('')}
                 </div>
 
-                <!-- SERIE IV -->
-                <div style="border: 1px solid #000; padding: 14px; margin-top: 16px; page-break-inside: avoid;">
+                <div style="border: 1px solid #000; padding: 14px; margin-top: 16px;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <h3 style="margin: 0; color: #000;">IV SERIE — VALOR 10 PTS</h3>
                         <div>
@@ -442,9 +419,8 @@
                     </div>
                 </div>
 
-                <!-- SERIE EXTRA -->
                 ${extra.length > 0 ? `
-                <div style="border: 1px solid #000; padding: 14px; margin-top: 16px; page-break-inside: avoid;">
+                <div style="border: 1px solid #000; padding: 14px; margin-top: 16px;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <h3 style="margin: 0; color: #000;">SERIE EXTRA — VALOR +5 PTS</h3>
                         <div>
@@ -471,14 +447,13 @@
             <div class="barra-acciones">
                 <button class="btn-guardar" onclick="guardarCalificacion()">💾 Guardar Calificación</button>
                 <button class="btn-pdf" onclick="descargarPDF()">📄 Descargar PDF</button>
-                <button class="btn-qr" onclick="generarInvitacion('${e.codigo}')">📱 Generar Invitación (QR + PDF)</button>
+                <button class="btn-qr" onclick="generarInvitacion('${e.codigo}')">📱 Generar Invitación (QR + PNG)</button>
             </div>
         `;
 
         document.getElementById('contenido').innerHTML = html;
     }
 
-    // ==================== GUARDAR CALIFICACIÓN ====================
     async function guardarCalificacion() {
         const punteoS4 = parseInt(document.getElementById('input-punteo-s4').value) || 0;
         const inputExtra = document.getElementById('input-punteo-extra');
@@ -519,10 +494,8 @@
         cargarLista();
     }
 
-    // ==================== DESCARGAR PDF DEL EXAMEN ====================
     async function descargarPDF() {
         const elemento = document.getElementById('examen-pdf');
-        
         await new Promise(r => setTimeout(r, 500));
 
         html2pdf().set({
@@ -534,10 +507,9 @@
         }).from(elemento).save();
     }
 
-    // ==================== GENERAR INVITACIÓN INDIVIDUAL ====================
+    // ==================== GENERAR INVITACIÓN (AHORA SUBE PNG) ====================
     async function generarInvitacion(codigoEstudiante) {
         try {
-            // 1) Obtener datos del estudiante
             const { data: est, error: errorEst } = await _supabase
                 .from('estudiantes')
                 .select('*')
@@ -549,7 +521,6 @@
                 return;
             }
 
-            // 2) Obtener datos del examen
             const { data: examen, error: errorExamen } = await _supabase
                 .from('resultados_evaluacion')
                 .select('*')
@@ -569,62 +540,60 @@
                 if (!confirmar) return;
             }
 
-            // 3) Asegurar que el examen esté cargado en pantalla
             if (!estudianteActual || estudianteActual.codigo !== codigoEstudiante) {
                 await cargarExamen(codigoEstudiante);
                 await new Promise(r => setTimeout(r, 600));
             }
 
-            // 4) Generar el PDF
-            alert('📄 Generando PDF y subiéndolo a la nube. Espera un momento...');
+            alert('🖼️ Generando imagen y subiéndola a la nube. Espera un momento...');
 
             const elementoExamen = document.getElementById('examen-pdf');
-            const pdfBlob = await html2pdf().set({
-                margin: 10,
-                filename: `examen_${est.codigo}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
-                jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait' }
-            }).from(elementoExamen).outputPdf('blob');
 
-            // 5) Subir el PDF a Supabase Storage
+            // Convertir a imagen PNG
+            const canvas = await html2canvas(elementoExamen, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: '#ffffff',
+                scrollY: 0,
+                windowWidth: elementoExamen.scrollWidth,
+                windowHeight: elementoExamen.scrollHeight
+            });
+
+            const pngBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+
+            if (!pngBlob) throw new Error('No se pudo generar la imagen.');
+
             const timestamp = Date.now();
-            const nombreArchivo = `examen_${est.codigo}_${timestamp}.pdf`;
+            const nombreArchivo = `examen_${est.codigo}_${timestamp}.png`;
 
             const { error: uploadError } = await _supabase
                 .storage
                 .from('examenes-pdf')
-                .upload(nombreArchivo, pdfBlob, {
-                    contentType: 'application/pdf',
+                .upload(nombreArchivo, pngBlob, {
+                    contentType: 'image/png',
                     cacheControl: '3600',
                     upsert: false
                 });
 
-            if (uploadError) {
-                throw new Error('Error al subir el PDF: ' + uploadError.message);
-            }
+            if (uploadError) throw new Error('Error al subir la imagen: ' + uploadError.message);
 
-            // 6) Obtener URL pública
             const { data: urlData } = _supabase
                 .storage
                 .from('examenes-pdf')
                 .getPublicUrl(nombreArchivo);
 
-            const pdfPublicURL = urlData.publicUrl;
+            const imagenURL = urlData.publicUrl;
 
-            // 7) Guardar URL en la base de datos
             await _supabase
                 .from('resultados_evaluacion')
                 .update({
-                    pdf_url: pdfPublicURL,
+                    pdf_url: imagenURL,
                     pdf_subido_en: new Date().toISOString()
                 })
                 .eq('codigo_estudiante', codigoEstudiante);
 
-            // 8) Construir URL de ver-examen
             const enlace = `${URL_VER_EXAMEN}?codigo=${encodeURIComponent(est.codigo)}`;
 
-            // 9) Generar QR
             let qrDataURL;
             if (typeof QRCode !== 'undefined' && QRCode.toDataURL) {
                 qrDataURL = await QRCode.toDataURL(enlace, {
@@ -635,7 +604,6 @@
                 qrDataURL = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(enlace)}`;
             }
 
-            // 10) Generar PDF de invitación con QR
             const html = `
                 <div id="invitacion-pdf" style="
                     font-family: Arial, sans-serif; padding: 40px; max-width: 600px; margin: auto;
@@ -688,7 +656,7 @@
             }).from(contenedor.querySelector('#invitacion-pdf')).save();
 
             document.body.removeChild(contenedor);
-            mostrarExito('📱 Invitación generada y PDF subido');
+            mostrarExito('📱 Invitación generada y examen subido como imagen');
 
         } catch (error) {
             console.error('Error al generar invitación:', error);
@@ -696,7 +664,6 @@
         }
     }
 
-    // ==================== GENERAR INVITACIONES MASIVAS ====================
     async function generarInvitacionesMasivas() {
         const gradoFiltro = document.getElementById('filtro-grado').value;
         if (!gradoFiltro) {
@@ -772,7 +739,6 @@
         mostrarExito('📄 Invitaciones masivas generadas');
     }
 
-    // ==================== CARGAR AL INICIO ====================
     cargarLista();
 </script>
 
