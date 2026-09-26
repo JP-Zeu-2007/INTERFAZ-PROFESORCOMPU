@@ -260,7 +260,6 @@
             .eq('codigo_estudiante', codigo)
             .maybeSingle();
 
-        // Detalle puede tener duplicados → tomar el más reciente
         const { data: detalle } = await _supabase
             .from('detalle_respuestas')
             .select('*')
@@ -284,7 +283,8 @@
             serie2_json: [],
             serie3_json: [],
             serie4_json: {},
-            extra_json: []
+            extra_json: [],
+            gmail_captura_url: null
         };
 
         estudianteActual = { ...est, ...resumen };
@@ -319,6 +319,8 @@
         const serie3 = d.serie3_json || [];
         const serie4 = d.serie4_json || {};
         const extra = d.extra_json || [];
+        const gmailCaptura = d.gmail_captura_url || null;
+        const esGrado5to = String(e.grado).trim() === '5';
 
         const p = calcularPunteos(d);
 
@@ -438,6 +440,21 @@
                     <div style="text-align: center; margin-top: 10px;">
                         <img src="${serie4.url_captura || d.captura_practica || ''}" style="max-width: 100%; border: 1px solid #999;">
                     </div>
+
+                    ${esGrado5to ? `
+                    <div style="margin-top: 16px; border-top: 1px dashed #999; padding-top: 12px;">
+                        <p style="margin: 6px 0; color: #000;"><strong>📧 Práctica en el Simulador de Gmail (crear 5 cuentas):</strong></p>
+                        ${gmailCaptura ? `
+                            <div style="text-align: center; margin-top: 10px;">
+                                <img src="${gmailCaptura}" style="max-width: 100%; border: 1px solid #999;">
+                            </div>
+                        ` : `
+                            <p style="margin: 6px 0; color: #dc2626; font-style: italic;">
+                                ⚠️ No hay captura del simulador de Gmail para este estudiante.
+                            </p>
+                        `}
+                    </div>
+                    ` : ''}
                 </div>
 
                 ${extra.length > 0 ? `
@@ -528,7 +545,6 @@
         }).from(elemento).save();
     }
 
-    // ==================== GENERAR INVITACIÓN (SUBE PNG) ====================
     async function generarInvitacion(codigoEstudiante) {
         try {
             const { data: est, error: errorEst } = await _supabase
