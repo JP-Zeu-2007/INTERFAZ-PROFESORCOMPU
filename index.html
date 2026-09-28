@@ -125,40 +125,256 @@
             animation: slideIn 0.3s ease;
         }
         @keyframes slideIn { from { transform: translateX(400px); } to { transform: translateX(0); } }
+
+        /* =============== PESTAÑAS =============== */
+        .tabs {
+            display: flex;
+            background: #fff;
+            border-bottom: 2px solid #e5e7eb;
+            padding: 0 16px;
+            gap: 4px;
+        }
+        .tab {
+            padding: 12px 22px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #6b7280;
+            border-bottom: 3px solid transparent;
+            transition: all 0.15s;
+            user-select: none;
+        }
+        .tab:hover { color: #4f46e5; }
+        .tab.activo {
+            color: #4f46e5;
+            border-bottom-color: #4f46e5;
+        }
+        .pestana {
+            display: none;
+            height: calc(100vh - 52px);
+            overflow: hidden;
+        }
+        .pestana.activa { display: flex; }
+
+        /* =============== TABLA DE PUNTEOS =============== */
+        .tabla-container {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+        }
+        .tabla-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .tabla-header h2 {
+            color: #4f46e5;
+            margin: 0;
+            font-size: 1.4rem;
+        }
+        .tabla-header-acciones {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .filtro-global {
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            min-width: 200px;
+        }
+        .btn-exportar {
+            background: #dc2626;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        .btn-exportar:hover { background: #b91c1c; }
+
+        .tabla-punteos {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            font-size: 0.85rem;
+        }
+        .tabla-punteos th {
+            background: #4f46e5;
+            color: white;
+            padding: 10px 6px;
+            text-align: center;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .tabla-punteos td {
+            padding: 8px 6px;
+            text-align: center;
+            border-bottom: 1px solid #e5e7eb;
+            color: #1f2937;
+        }
+        .tabla-punteos tr:hover td {
+            background: #f0f0ff;
+        }
+        .tabla-punteos .nombre-celda {
+            text-align: left;
+            padding-left: 12px;
+        }
+        .fila-input {
+            width: 100%;
+            padding: 4px 6px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            text-align: center;
+            outline: none;
+        }
+        .fila-input:focus { border-color: #4f46e5; }
+        .fila-input.nombre-filtro { text-align: left; }
+        .col-filtros td {
+            background: #f9fafb !important;
+            padding: 4px 6px !important;
+            border-bottom: 2px solid #e5e7eb !important;
+        }
+        .btn-acceso {
+            background: #4f46e5;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.75rem;
+        }
+        .btn-acceso:hover { background: #4338ca; }
+
+        .punteo-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+        .badge-base { background: #dbeafe; color: #1e40af; }
+        .badge-extra { background: #fef3c7; color: #92400e; }
+        .badge-total { background: #d1fae5; color: #065f46; }
+        .badge-pendiente { background: #fee2e2; color: #991b1b; }
+
+        .sin-resultados {
+            text-align: center;
+            padding: 40px;
+            color: #9ca3af;
+            font-style: italic;
+        }
+
+        .contenedor-tabla-pdf {
+            background: #fff;
+            padding: 20px;
+        }
+        .titulo-tabla-pdf {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #000;
+        }
+        .titulo-tabla-pdf h2 { margin: 0; font-size: 1.2rem; }
+        .titulo-tabla-pdf p { margin: 4px 0; font-size: 0.85rem; color: #666; }
     </style>
 </head>
 <body>
 
-<div class="layout">
+<div class="tabs">
+    <div class="tab activo" onclick="cambiarPestana('revision')">👤 Revisión Individual</div>
+    <div class="tab" onclick="cambiarPestana('tabla')">📊 Tabla de Punteos</div>
+</div>
 
-    <div class="sidebar">
-        <h2>📚 Panel del Profesor</h2>
-        <p style="font-size: 0.8rem; color: #6b7280; margin-bottom: 12px;">
-            Evaluación de Computación - Cuarto Bimestre
-        </p>
+<div class="pestana activa" id="pestana-revision">
+    <div class="layout" style="width: 100%;">
+        <div class="sidebar">
+            <h2>📚 Panel del Profesor</h2>
+            <p style="font-size: 0.8rem; color: #6b7280; margin-bottom: 12px;">
+                Evaluación de Computación - Cuarto Bimestre
+            </p>
 
-        <select class="filtro-grado" id="filtro-grado" onchange="cargarLista()">
-            <option value="">Todos los grados</option>
-            <option value="2">Segundo Primaria</option>
-            <option value="3">Tercer Primaria</option>
-            <option value="4">Cuarto Primaria</option>
-            <option value="5">Quinto Primaria</option>
-            <option value="6">Sexto Primaria</option>
-        </select>
+            <select class="filtro-grado" id="filtro-grado" onchange="cargarLista()">
+                <option value="">Todos los grados</option>
+                <option value="2">Segundo Primaria</option>
+                <option value="3">Tercer Primaria</option>
+                <option value="4">Cuarto Primaria</option>
+                <option value="5">Quinto Primaria</option>
+                <option value="6">Sexto Primaria</option>
+            </select>
 
-        <button class="btn-masivo" style="width:100%; padding:10px; font-size:0.9rem; margin-bottom:12px;" onclick="generarInvitacionesMasivas()">
-            📄 Generar Invitaciones del Grado
-        </button>
+            <button class="btn-masivo" style="width:100%; padding:10px; font-size:0.9rem; margin-bottom:12px;" onclick="generarInvitacionesMasivas()">
+                📄 Generar Invitaciones del Grado
+            </button>
 
-        <div id="lista-estudiantes"></div>
-    </div>
+            <div id="lista-estudiantes"></div>
+        </div>
 
-    <div class="contenido" id="contenido">
-        <div class="placeholder">
-            👈 Selecciona un estudiante de la lista para revisar su examen.
+        <div class="contenido" id="contenido">
+            <div class="placeholder">
+                👈 Selecciona un estudiante de la lista para revisar su examen.
+            </div>
         </div>
     </div>
+</div>
 
+<div class="pestana" id="pestana-tabla">
+    <div class="tabla-container">
+        <div class="tabla-header">
+            <h2>📊 Tabla de Punteos</h2>
+            <div class="tabla-header-acciones">
+                <input type="text" class="filtro-global" id="filtro-global-nombre" placeholder="🔍 Buscar por nombre..." oninput="aplicarFiltros()">
+                <select class="filtro-global" id="filtro-global-grado" onchange="aplicarFiltros()">
+                    <option value="">Todos los grados</option>
+                    <option value="2">2do Primaria</option>
+                    <option value="3">3ro Primaria</option>
+                    <option value="4">4to Primaria</option>
+                    <option value="5">5to Primaria</option>
+                    <option value="6">6to Primaria</option>
+                </select>
+                <select class="filtro-global" id="filtro-global-estado" onchange="aplicarFiltros()">
+                    <option value="">Todos los estados</option>
+                    <option value="revisado">✅ Revisado</option>
+                    <option value="pendiente">⏳ Pendiente</option>
+                </select>
+                <button class="btn-exportar" onclick="exportarTablaPDF()">📄 Exportar PDF</button>
+            </div>
+        </div>
+
+        <table class="tabla-punteos" id="tabla-punteos">
+            <thead>
+                <tr>
+                    <th style="width: 40px;">#</th>
+                    <th style="width: 60px;">Acción</th>
+                    <th style="width: 100px;">Código</th>
+                    <th style="min-width: 120px;">Nombres</th>
+                    <th style="min-width: 120px;">Apellidos</th>
+                    <th style="width: 80px;">Grado</th>
+                    <th style="width: 60px;">S1</th>
+                    <th style="width: 60px;">S2</th>
+                    <th style="width: 60px;">S3</th>
+                    <th style="width: 60px;">S4</th>
+                    <th style="width: 80px;">Base (40)</th>
+                    <th style="width: 70px;">Extra</th>
+                    <th style="width: 90px;">Total Real</th>
+                    <th style="width: 90px;">Estado</th>
+                </tr>
+            </thead>
+            <tbody id="tabla-punteos-body">
+                <tr><td colspan="14" class="sin-resultados">Cargando datos...</td></tr>
+            </tbody>
+            <tfoot></tfoot>
+        </table>
+    </div>
 </div>
 
 <script>
@@ -183,6 +399,7 @@
     let estudianteActual = null;
     let datosExamenActual = null;
     let listaEstudiantesCache = [];
+    let datosTablaCompletos = [];
 
     function obtenerNombreGrado(gradoNum) {
         switch(String(gradoNum).trim()) {
@@ -195,6 +412,17 @@
         }
     }
 
+    function obtenerNombreGradoCorto(gradoNum) {
+        switch(String(gradoNum).trim()) {
+            case '2': return '2do';
+            case '3': return '3ro';
+            case '4': return '4to';
+            case '5': return '5to';
+            case '6': return '6to';
+            default: return `${gradoNum}°`;
+        }
+    }
+
     function mostrarExito(msg) {
         const div = document.createElement('div');
         div.className = 'mensaje-exito';
@@ -203,6 +431,19 @@
         setTimeout(() => div.remove(), 3000);
     }
 
+    // ================= PESTAÑAS =================
+    function cambiarPestana(nombre) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('activo'));
+        document.querySelectorAll('.pestana').forEach(p => p.classList.remove('activa'));
+        event.target.classList.add('activo');
+        document.getElementById('pestana-' + nombre).classList.add('activa');
+
+        if (nombre === 'tabla') {
+            cargarTablaPunteos();
+        }
+    }
+
+    // ================= REVISIÓN INDIVIDUAL =================
     async function cargarLista() {
         const gradoFiltro = document.getElementById('filtro-grado').value;
 
@@ -279,20 +520,18 @@
         }
 
         const detalleSeguro = detalle || {
-            serie1_json: [],
-            serie2_json: [],
-            serie3_json: [],
-            serie4_json: {},
-            extra_json: [],
-            gmail_captura_url: null
+            serie1_json: [], serie2_json: [], serie3_json: [],
+            serie4_json: {}, extra_json: [], gmail_captura_url: null
         };
 
         estudianteActual = { ...est, ...resumen };
         datosExamenActual = { ...detalleSeguro, ...resumen };
 
-        if (!detalle) {
-            console.warn('⚠️ Este examen no tiene detalle_respuestas. Solo se verán los punteos.');
-        }
+        // Cambiar a la pestaña de revisión
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('activo'));
+        document.querySelectorAll('.pestana').forEach(p => p.classList.remove('activa'));
+        document.querySelectorAll('.tab')[0].classList.add('activo');
+        document.getElementById('pestana-revision').classList.add('activa');
 
         renderizarExamen();
     }
@@ -326,27 +565,15 @@
 
         const html = `
             <div class="examen" id="examen-pdf">
-
                 <div style="position: relative; text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; padding-right: 110px; min-height: 100px;">
-                    <img src="${LOGO_URL}"
-                         crossorigin="anonymous"
-                         style="position: absolute; top: 0; right: 0; width: 100px; height: auto;">
+                    <img src="${LOGO_URL}" crossorigin="anonymous" style="position: absolute; top: 0; right: 0; width: 100px; height: auto;">
                     <h2 style="margin: 0; color: #000;">COLEGIO MIXTO NUEVO SAN CRISTÓBAL</h2>
                     <p style="margin: 4px 0; color: #000;">CUARTO BIMESTRE 2026 - ÁREA: Computación</p>
                     <p style="margin: 4px 0; color: #000;">PROFE: Josué Pineda | TIEMPO: 50 min | <strong>40 pts.</strong></p>
                 </div>
 
                 <div style="text-align: right; margin-top: 8px; margin-bottom: 6px;">
-                    <span style="
-                        display: inline-block;
-                        border: 3px solid #c00;
-                        color: #c00;
-                        padding: 8px 18px;
-                        border-radius: 10px;
-                        font-weight: bold;
-                        font-size: 1.05rem;
-                        background: #fff5f5;
-                    ">
+                    <span style="display: inline-block; border: 3px solid #c00; color: #c00; padding: 8px 18px; border-radius: 10px; font-weight: bold; font-size: 1.05rem; background: #fff5f5;">
                         PUNTEO TOTAL: ${p.total} / 40 PTS
                     </span>
                     <div style="font-size: 0.75rem; color: #666; margin-top: 4px;">
@@ -440,7 +667,6 @@
                     <div style="text-align: center; margin-top: 10px;">
                         <img src="${serie4.url_captura || d.captura_practica || ''}" style="max-width: 100%; border: 1px solid #999;">
                     </div>
-
                     ${esGrado5to ? `
                     <div style="margin-top: 16px; border-top: 1px dashed #999; padding-top: 12px;">
                         <p style="margin: 6px 0; color: #000;"><strong>📧 Práctica en el Simulador de Gmail (crear 5 cuentas):</strong></p>
@@ -449,9 +675,7 @@
                                 <img src="${gmailCaptura}" style="max-width: 100%; border: 1px solid #999;">
                             </div>
                         ` : `
-                            <p style="margin: 6px 0; color: #dc2626; font-style: italic;">
-                                ⚠️ No hay captura del simulador de Gmail para este estudiante.
-                            </p>
+                            <p style="margin: 6px 0; color: #dc2626; font-style: italic;">⚠️ No hay captura del simulador de Gmail para este estudiante.</p>
                         `}
                     </div>
                     ` : ''}
@@ -469,8 +693,7 @@
                     <p style="margin: 6px 0; color: #000;"><strong>Instrucciones:</strong> Ordena las palabras para formar la oración correcta.</p>
                     ${extra.map((pr, i) => `
                         <div style="margin-bottom: 8px; font-size: 0.9rem; color: ${pr.correcto ? '#000' : '#dc2626'};">
-                            <strong>${i+1}.</strong> 
-                            <em>${pr.oracion_alumno || '(sin responder)'}</em>
+                            <strong>${i+1}.</strong> <em>${pr.oracion_alumno || '(sin responder)'}</em>
                             ${pr.correcto ? ' ✓' : ` ✗ (Correcta: ${pr.oracion_correcta})`}
                         </div>
                     `).join('')}
@@ -548,32 +771,17 @@
     async function generarInvitacion(codigoEstudiante) {
         try {
             const { data: est, error: errorEst } = await _supabase
-                .from('estudiantes')
-                .select('*')
-                .eq('codigo', codigoEstudiante)
-                .single();
+                .from('estudiantes').select('*').eq('codigo', codigoEstudiante).single();
 
-            if (errorEst || !est) {
-                alert('❌ No se encontró el estudiante.');
-                return;
-            }
+            if (errorEst || !est) { alert('❌ No se encontró el estudiante.'); return; }
 
             const { data: examen, error: errorExamen } = await _supabase
-                .from('resultados_evaluacion')
-                .select('*')
-                .eq('codigo_estudiante', codigoEstudiante)
-                .maybeSingle();
+                .from('resultados_evaluacion').select('*').eq('codigo_estudiante', codigoEstudiante).maybeSingle();
 
-            if (errorExamen || !examen) {
-                alert('❌ Este estudiante aún no ha enviado su examen.');
-                return;
-            }
+            if (errorExamen || !examen) { alert('❌ Este estudiante aún no ha enviado su examen.'); return; }
 
             if (!examen.revisado_por_profesor) {
-                const confirmar = confirm(
-                    '⚠️ Este examen aún NO ha sido calificado por ti.\n\n' +
-                    '¿Deseas continuar de todos modos?'
-                );
+                const confirmar = confirm('⚠️ Este examen aún NO ha sido calificado por ti.\n\n¿Deseas continuar de todos modos?');
                 if (!confirmar) return;
             }
 
@@ -585,66 +793,42 @@
             alert('🖼️ Generando imagen y subiéndola a la nube. Espera un momento...');
 
             const elementoExamen = document.getElementById('examen-pdf');
-
             const canvas = await html2canvas(elementoExamen, {
-                scale: 2,
-                useCORS: true,
-                backgroundColor: '#ffffff',
-                scrollY: 0,
-                windowWidth: elementoExamen.scrollWidth,
-                windowHeight: elementoExamen.scrollHeight
+                scale: 2, useCORS: true, backgroundColor: '#ffffff',
+                scrollY: 0, windowWidth: elementoExamen.scrollWidth, windowHeight: elementoExamen.scrollHeight
             });
 
             const pngBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
-
             if (!pngBlob) throw new Error('No se pudo generar la imagen.');
 
             const timestamp = Date.now();
             const nombreArchivo = `examen_${est.codigo}_${timestamp}.png`;
 
-            const { error: uploadError } = await _supabase
-                .storage
-                .from('examenes-pdf')
-                .upload(nombreArchivo, pngBlob, {
-                    contentType: 'image/png',
-                    cacheControl: '3600',
-                    upsert: false
-                });
+            const { error: uploadError } = await _supabase.storage.from('examenes-pdf').upload(nombreArchivo, pngBlob, {
+                contentType: 'image/png', cacheControl: '3600', upsert: false
+            });
 
             if (uploadError) throw new Error('Error al subir la imagen: ' + uploadError.message);
 
-            const { data: urlData } = _supabase
-                .storage
-                .from('examenes-pdf')
-                .getPublicUrl(nombreArchivo);
-
+            const { data: urlData } = _supabase.storage.from('examenes-pdf').getPublicUrl(nombreArchivo);
             const imagenURL = urlData.publicUrl;
 
-            await _supabase
-                .from('resultados_evaluacion')
-                .update({
-                    pdf_url: imagenURL,
-                    pdf_subido_en: new Date().toISOString()
-                })
-                .eq('codigo_estudiante', codigoEstudiante);
+            await _supabase.from('resultados_evaluacion').update({
+                pdf_url: imagenURL,
+                pdf_subido_en: new Date().toISOString()
+            }).eq('codigo_estudiante', codigoEstudiante);
 
             const enlace = `${URL_VER_EXAMEN}?codigo=${encodeURIComponent(est.codigo)}`;
 
             let qrDataURL;
             if (typeof QRCode !== 'undefined' && QRCode.toDataURL) {
-                qrDataURL = await QRCode.toDataURL(enlace, {
-                    width: 300, margin: 2,
-                    color: { dark: '#000000', light: '#ffffff' }
-                });
+                qrDataURL = await QRCode.toDataURL(enlace, { width: 300, margin: 2, color: { dark: '#000000', light: '#ffffff' } });
             } else {
                 qrDataURL = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(enlace)}`;
             }
 
             const html = `
-                <div id="invitacion-pdf" style="
-                    font-family: Arial, sans-serif; padding: 40px; max-width: 600px; margin: auto;
-                    border: 3px solid #4f46e5; border-radius: 12px; background: #fff; color: #000;
-                ">
+                <div id="invitacion-pdf" style="font-family: Arial; padding: 40px; max-width: 600px; margin: auto; border: 3px solid #4f46e5; border-radius: 12px; background: #fff; color: #000;">
                     <div style="text-align: center; border-bottom: 2px solid #4f46e5; padding-bottom: 12px;">
                         <h1 style="margin: 0; color: #4f46e5;">🎓 Consulta del Examen</h1>
                         <p style="margin: 4px 0; font-size: 14px; color: #666;">Evaluación Virtual de Computación</p>
@@ -684,8 +868,7 @@
             await new Promise(r => setTimeout(r, 900));
 
             await html2pdf().set({
-                margin: 10,
-                filename: `invitacion_${est.codigo}_${est.nombres}.pdf`,
+                margin: 10, filename: `invitacion_${est.codigo}_${est.nombres}.pdf`,
                 image: { type: 'jpeg', quality: 0.98 },
                 html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
                 jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait' }
@@ -693,34 +876,22 @@
 
             document.body.removeChild(contenedor);
             mostrarExito('📱 Invitación generada y examen subido como imagen');
-
         } catch (error) {
-            console.error('Error al generar invitación:', error);
+            console.error(error);
             alert('❌ Error al generar la invitación:\n\n' + error.message);
         }
     }
 
     async function generarInvitacionesMasivas() {
         const gradoFiltro = document.getElementById('filtro-grado').value;
-        if (!gradoFiltro) {
-            alert('Por favor, selecciona un grado en el filtro antes de generar invitaciones masivas.');
-            return;
-        }
+        if (!gradoFiltro) { alert('Selecciona un grado en el filtro antes de generar invitaciones masivas.'); return; }
 
-        const { data: estudiantes } = await _supabase
-            .from('estudiantes')
-            .select('*')
-            .eq('grado', gradoFiltro);
-
-        if (!estudiantes || estudiantes.length === 0) {
-            alert('No hay estudiantes en ese grado.');
-            return;
-        }
+        const { data: estudiantes } = await _supabase.from('estudiantes').select('*').eq('grado', gradoFiltro);
+        if (!estudiantes || estudiantes.length === 0) { alert('No hay estudiantes en ese grado.'); return; }
 
         let htmlTodas = '';
         for (const est of estudiantes) {
             const enlace = `${URL_VER_EXAMEN}?codigo=${encodeURIComponent(est.codigo)}`;
-
             let qrDataURL;
             if (typeof QRCode !== 'undefined' && QRCode.toDataURL) {
                 qrDataURL = await QRCode.toDataURL(enlace, { width: 300, margin: 2 });
@@ -729,23 +900,13 @@
             }
 
             htmlTodas += `
-                <div style="
-                    font-family: Arial; padding: 40px; page-break-after: always;
-                    border: 3px solid #4f46e5; border-radius: 12px; margin: 20px 0; color: #000;
-                ">
+                <div style="font-family: Arial; padding: 40px; page-break-after: always; border: 3px solid #4f46e5; border-radius: 12px; margin: 20px 0; color: #000;">
                     <div style="text-align: center; border-bottom: 2px solid #4f46e5; padding-bottom: 12px;">
                         <h1 style="margin: 0; color: #4f46e5;">🎓 Consulta del Examen</h1>
-                        <p style="margin: 4px 0; font-size: 14px; color: #666;">Evaluación Virtual de Computación</p>
                     </div>
                     <div style="text-align: center; margin-top: 20px;">
                         <h2 style="margin: 0;">${est.nombres} ${est.apellidos}</h2>
                         <p style="color: #888;">${obtenerNombreGrado(est.grado)}</p>
-                    </div>
-                    <div style="margin-top: 24px; padding: 14px; background: #eef2ff; border-radius: 8px;">
-                        <p style="margin: 0; font-size: 14px; color: #333;">
-                            <strong>Descripción:</strong> Escanea este QR para consultar el examen de 
-                            Computación con sus respuestas y punteo.
-                        </p>
                     </div>
                     <div style="text-align: center; margin-top: 24px;">
                         <img src="${qrDataURL}" crossorigin="anonymous" style="width: 220px;">
@@ -760,12 +921,10 @@
         contenedor.style.position = 'fixed';
         contenedor.style.left = '-9999px';
         document.body.appendChild(contenedor);
-
         await new Promise(r => setTimeout(r, 1500));
 
         await html2pdf().set({
-            margin: 10,
-            filename: `invitaciones_${gradoFiltro}to_grado.pdf`,
+            margin: 10, filename: `invitaciones_${gradoFiltro}to_grado.pdf`,
             image: { type: 'jpeg', quality: 0.98 },
             html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
             jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait' }
@@ -775,6 +934,250 @@
         mostrarExito('📄 Invitaciones masivas generadas');
     }
 
+    // ================= TABLA DE PUNTEOS =================
+    async function cargarTablaPunteos() {
+        const { data: resultados, error } = await _supabase
+            .from('resultados_evaluacion')
+            .select('*')
+            .order('fecha_envio', { ascending: false });
+
+        if (error) { console.error(error); return; }
+
+        datosTablaCompletos = [];
+
+        for (const r of resultados) {
+            const { data: est } = await _supabase
+                .from('estudiantes').select('*').eq('codigo', r.codigo_estudiante).single();
+
+            if (!est) continue;
+
+            const s1 = r.punteo_s1 || 0;
+            const s2 = r.punteo_s2 || 0;
+            const s3 = r.punteo_s3 || 0;
+            const s4 = r.punteo_s4 || 0;
+            const extra = r.punteo_extra || 0;
+            const base = s1 + s2 + s3 + s4;
+            const total = base + extra;
+
+            datosTablaCompletos.push({
+                codigo: est.codigo,
+                nombres: est.nombres,
+                apellidos: est.apellidos,
+                grado: String(est.grado),
+                gradoTexto: obtenerNombreGradoCorto(est.grado),
+                s1, s2, s3, s4,
+                base, extra, total,
+                revisado: r.revisado_por_profesor === true
+            });
+        }
+
+        aplicarFiltros();
+    }
+
+    function aplicarFiltros() {
+        const filtroNombre = document.getElementById('filtro-global-nombre').value.toLowerCase().trim();
+        const filtroGrado = document.getElementById('filtro-global-grado').value;
+        const filtroEstado = document.getElementById('filtro-global-estado').value;
+
+        // Filtros por columna
+        const filtrosColumna = {};
+        document.querySelectorAll('.fila-input').forEach(inp => {
+            const col = inp.getAttribute('data-col');
+            const val = inp.value.toLowerCase().trim();
+            if (val) filtrosColumna[col] = val;
+        });
+
+        const filtrados = datosTablaCompletos.filter(r => {
+            // Filtro global nombre
+            if (filtroNombre) {
+                const completo = `${r.nombres} ${r.apellidos} ${r.codigo}`.toLowerCase();
+                if (!completo.includes(filtroNombre)) return false;
+            }
+            // Filtro grado
+            if (filtroGrado && r.grado !== filtroGrado) return false;
+            // Filtro estado
+            if (filtroEstado === 'revisado' && !r.revisado) return false;
+            if (filtroEstado === 'pendiente' && r.revisado) return false;
+
+            // Filtros por columna
+            for (const [col, val] of Object.entries(filtrosColumna)) {
+                const valorCol = String(r[col] || '').toLowerCase();
+                if (!valorCol.includes(val)) return false;
+            }
+
+            return true;
+        });
+
+        renderizarFilasTabla(filtrados);
+    }
+
+    function renderizarFilasTabla(datos) {
+        const tbody = document.getElementById('tabla-punteos-body');
+
+        if (datos.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="14" class="sin-resultados">No se encontraron resultados con los filtros aplicados.</td></tr>';
+            return;
+        }
+
+        let html = '';
+        datos.forEach((r, i) => {
+            const estadoBadge = r.revisado
+                ? '<span class="punteo-badge badge-total">✅ Revisado</span>'
+                : '<span class="punteo-badge badge-pendiente">⏳ Pendiente</span>';
+
+            html += `
+                <tr>
+                    <td>${i + 1}</td>
+                    <td>
+                        <button class="btn-acceso" onclick="cargarExamen('${r.codigo}')">👁️ Ver</button>
+                    </td>
+                    <td>${r.codigo}</td>
+                    <td class="nombre-celda">${r.nombres}</td>
+                    <td class="nombre-celda">${r.apellidos}</td>
+                    <td>${r.gradoTexto}</td>
+                    <td><span class="punteo-badge badge-base">${r.s1}</span></td>
+                    <td><span class="punteo-badge badge-base">${r.s2}</span></td>
+                    <td><span class="punteo-badge badge-base">${r.s3}</span></td>
+                    <td><span class="punteo-badge badge-base">${r.s4}</span></td>
+                    <td><span class="punteo-badge badge-base">${r.base}</span></td>
+                    <td><span class="punteo-badge badge-extra">+${r.extra}</span></td>
+                    <td><span class="punteo-badge badge-total">${r.total}</span></td>
+                    <td>${estadoBadge}</td>
+                </tr>
+            `;
+        });
+
+        tbody.innerHTML = html;
+
+        // Fila de filtros por columna
+        const tfoot = document.querySelector('.tabla-punteos tfoot');
+        tfoot.innerHTML = `
+            <tr class="col-filtros">
+                <td></td>
+                <td></td>
+                <td><input class="fila-input" data-col="codigo" placeholder="filtrar" oninput="aplicarFiltros()"></td>
+                <td><input class="fila-input nombre-filtro" data-col="nombres" placeholder="filtrar" oninput="aplicarFiltros()"></td>
+                <td><input class="fila-input nombre-filtro" data-col="apellidos" placeholder="filtrar" oninput="aplicarFiltros()"></td>
+                <td><input class="fila-input" data-col="gradoTexto" placeholder="filtrar" oninput="aplicarFiltros()"></td>
+                <td><input class="fila-input" data-col="s1" placeholder="=" oninput="aplicarFiltros()"></td>
+                <td><input class="fila-input" data-col="s2" placeholder="=" oninput="aplicarFiltros()"></td>
+                <td><input class="fila-input" data-col="s3" placeholder="=" oninput="aplicarFiltros()"></td>
+                <td><input class="fila-input" data-col="s4" placeholder="=" oninput="aplicarFiltros()"></td>
+                <td><input class="fila-input" data-col="base" placeholder="=" oninput="aplicarFiltros()"></td>
+                <td><input class="fila-input" data-col="extra" placeholder="=" oninput="aplicarFiltros()"></td>
+                <td><input class="fila-input" data-col="total" placeholder="=" oninput="aplicarFiltros()"></td>
+                <td>
+                    <select class="fila-input" data-col="estado" onchange="aplicarFiltros()">
+                        <option value="">Todos</option>
+                        <option value="revisado">Revisado</option>
+                        <option value="pendiente">Pendiente</option>
+                    </select>
+                </td>
+            </tr>
+        `;
+    }
+
+    async function exportarTablaPDF() {
+        // Recolectar los datos filtrados actuales
+        const filtroNombre = document.getElementById('filtro-global-nombre').value.toLowerCase().trim();
+        const filtroGrado = document.getElementById('filtro-global-grado').value;
+        const filtroEstado = document.getElementById('filtro-global-estado').value;
+
+        const datosFiltrados = datosTablaCompletos.filter(r => {
+            if (filtroNombre) {
+                const completo = `${r.nombres} ${r.apellidos} ${r.codigo}`.toLowerCase();
+                if (!completo.includes(filtroNombre)) return false;
+            }
+            if (filtroGrado && r.grado !== filtroGrado) return false;
+            if (filtroEstado === 'revisado' && !r.revisado) return false;
+            if (filtroEstado === 'pendiente' && r.revisado) return false;
+            return true;
+        });
+
+        if (datosFiltrados.length === 0) {
+            alert('No hay datos para exportar.');
+            return;
+        }
+
+        let filasHTML = '';
+        datosFiltrados.forEach((r, i) => {
+            filasHTML += `
+                <tr>
+                    <td>${i + 1}</td>
+                    <td>${r.codigo}</td>
+                    <td>${r.nombres}</td>
+                    <td>${r.apellidos}</td>
+                    <td>${r.gradoTexto}</td>
+                    <td>${r.s1}</td>
+                    <td>${r.s2}</td>
+                    <td>${r.s3}</td>
+                    <td>${r.s4}</td>
+                    <td>${r.base}</td>
+                    <td>+${r.extra}</td>
+                    <td>${r.total}</td>
+                    <td>${r.revisado ? 'Revisado' : 'Pendiente'}</td>
+                </tr>
+            `;
+        });
+
+        const html = `
+            <div id="tabla-pdf" class="contenedor-tabla-pdf">
+                <div class="titulo-tabla-pdf">
+                    <h2>COLEGIO MIXTO NUEVO SAN CRISTÓBAL</h2>
+                    <p>Reporte de Punteos — Evaluación de Computación</p>
+                    <p>Cuarto Bimestre 2026 — Profe: Josué Pineda</p>
+                    <p style="margin-top: 8px;">Fecha de generación: ${new Date().toLocaleDateString('es-GT')} ${new Date().toLocaleTimeString('es-GT')}</p>
+                </div>
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.75rem;">
+                    <thead>
+                        <tr style="background: #4f46e5; color: white;">
+                            <th style="border: 1px solid #333; padding: 6px;">#</th>
+                            <th style="border: 1px solid #333; padding: 6px;">Código</th>
+                            <th style="border: 1px solid #333; padding: 6px;">Nombres</th>
+                            <th style="border: 1px solid #333; padding: 6px;">Apellidos</th>
+                            <th style="border: 1px solid #333; padding: 6px;">Grado</th>
+                            <th style="border: 1px solid #333; padding: 6px;">S1</th>
+                            <th style="border: 1px solid #333; padding: 6px;">S2</th>
+                            <th style="border: 1px solid #333; padding: 6px;">S3</th>
+                            <th style="border: 1px solid #333; padding: 6px;">S4</th>
+                            <th style="border: 1px solid #333; padding: 6px;">Base</th>
+                            <th style="border: 1px solid #333; padding: 6px;">Extra</th>
+                            <th style="border: 1px solid #333; padding: 6px;">Total</th>
+                            <th style="border: 1px solid #333; padding: 6px;">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${filasHTML}
+                    </tbody>
+                </table>
+                <p style="text-align: center; margin-top: 20px; font-style: italic; font-size: 0.8rem;">
+                    "Tus pequeñas acciones de hoy pueden crear grandes cambios mañana."
+                </p>
+            </div>
+        `;
+
+        const contenedor = document.createElement('div');
+        contenedor.innerHTML = html;
+        contenedor.style.position = 'fixed';
+        contenedor.style.left = '-9999px';
+        contenedor.style.width = '1000px';
+        document.body.appendChild(contenedor);
+
+        await new Promise(r => setTimeout(r, 300));
+
+        await html2pdf().set({
+            margin: 10,
+            filename: `tabla_punteos_${new Date().toISOString().split('T')[0]}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+            jsPDF: { unit: 'mm', format: 'letter', orientation: 'landscape' }
+        }).from(contenedor.querySelector('#tabla-pdf')).save();
+
+        document.body.removeChild(contenedor);
+        mostrarExito('📄 Tabla exportada a PDF');
+    }
+
+    // ================= CARGAR AL INICIO =================
     cargarLista();
 </script>
 
