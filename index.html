@@ -126,7 +126,7 @@
         }
         @keyframes slideIn { from { transform: translateX(400px); } to { transform: translateX(0); } }
 
-        /* =============== PESTAÑAS =============== */
+        /* PESTAÑAS */
         .tabs {
             display: flex;
             background: #fff;
@@ -155,7 +155,7 @@
         }
         .pestana.activa { display: flex; }
 
-        /* =============== TABLA DE PUNTEOS =============== */
+        /* TABLA DE PUNTEOS */
         .tabla-container {
             flex: 1;
             padding: 24px;
@@ -169,22 +169,14 @@
             flex-wrap: wrap;
             gap: 12px;
         }
-        .tabla-header h2 {
-            color: #4f46e5;
-            margin: 0;
-            font-size: 1.4rem;
-        }
-        .tabla-header-acciones {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
+        .tabla-header h2 { color: #4f46e5; margin: 0; font-size: 1.4rem; }
+        .tabla-header-acciones { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
         .filtro-global {
             padding: 8px 12px;
             border: 1px solid #d1d5db;
             border-radius: 6px;
             font-size: 0.9rem;
-            min-width: 200px;
+            min-width: 180px;
         }
         .btn-exportar {
             background: #dc2626;
@@ -221,13 +213,8 @@
             border-bottom: 1px solid #e5e7eb;
             color: #1f2937;
         }
-        .tabla-punteos tr:hover td {
-            background: #f0f0ff;
-        }
-        .tabla-punteos .nombre-celda {
-            text-align: left;
-            padding-left: 12px;
-        }
+        .tabla-punteos tr:hover td { background: #f0f0ff; }
+        .tabla-punteos .nombre-celda { text-align: left; padding-left: 12px; }
         .fila-input {
             width: 100%;
             padding: 4px 6px;
@@ -267,6 +254,8 @@
         .badge-extra { background: #fef3c7; color: #92400e; }
         .badge-total { background: #d1fae5; color: #065f46; }
         .badge-pendiente { background: #fee2e2; color: #991b1b; }
+        .badge-ppt-ok { background: #d1fae5; color: #065f46; }
+        .badge-ppt-falta { background: #fef3c7; color: #92400e; }
 
         .sin-resultados {
             text-align: center;
@@ -286,6 +275,50 @@
         }
         .titulo-tabla-pdf h2 { margin: 0; font-size: 1.2rem; }
         .titulo-tabla-pdf p { margin: 4px 0; font-size: 0.85rem; color: #666; }
+
+        /* Grid capturas PowerPoint */
+        .capturas-ppt-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-top: 12px;
+        }
+        .captura-ppt-item {
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 10px;
+        }
+        .captura-ppt-titulo {
+            font-weight: bold;
+            color: #4f46e5;
+            font-size: 0.95rem;
+            margin-bottom: 8px;
+        }
+        .captura-ppt-item img {
+            width: 100%;
+            border-radius: 6px;
+            border: 1px solid #999;
+            display: block;
+        }
+        .captura-ppt-vacia {
+            background: #fef3c7;
+            border: 2px dashed #f59e0b;
+            color: #92400e;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            font-style: italic;
+        }
+        .aviso-ppt {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 12px 16px;
+            border-radius: 6px;
+            color: #78350f;
+            margin-top: 12px;
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 <body>
@@ -366,11 +399,12 @@
                     <th style="width: 80px;">Base (40)</th>
                     <th style="width: 70px;">Extra</th>
                     <th style="width: 90px;">Total Real</th>
+                    <th style="width: 90px;">Capturas PPT</th>
                     <th style="width: 90px;">Estado</th>
                 </tr>
             </thead>
             <tbody id="tabla-punteos-body">
-                <tr><td colspan="14" class="sin-resultados">Cargando datos...</td></tr>
+                <tr><td colspan="15" class="sin-resultados">Cargando datos...</td></tr>
             </tbody>
             <tfoot></tfoot>
         </table>
@@ -392,7 +426,6 @@
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxaGxybW9ubHJkZ3NranNpdWViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAxMTYwMzMsImV4cCI6MjEwNTY5MjAzM30.YJpjDzOK19QMNW22qDrgIZzO5sRbmSPqtBFds1YpbJQ';
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    const URL_BASE_EXAMEN = 'https://jp-zeu-2007.github.io/PAGINA-EXAMENES/';
     const URL_VER_EXAMEN = 'https://jp-zeu-2007.github.io/PAGINA-EXAMENES/ver-examen/';
     const LOGO_URL = 'https://res.cloudinary.com/dmis07evg/image/upload/v1790218589/logonsc_ke0t6f.png';
 
@@ -431,7 +464,7 @@
         setTimeout(() => div.remove(), 3000);
     }
 
-    // ================= PESTAÑAS =================
+    // ============ PESTAÑAS ============
     function cambiarPestana(nombre) {
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('activo'));
         document.querySelectorAll('.pestana').forEach(p => p.classList.remove('activa'));
@@ -443,7 +476,7 @@
         }
     }
 
-    // ================= REVISIÓN INDIVIDUAL =================
+    // ============ REVISIÓN INDIVIDUAL ============
     async function cargarLista() {
         const gradoFiltro = document.getElementById('filtro-grado').value;
 
@@ -490,44 +523,40 @@
 
     async function cargarExamen(codigo) {
         const { data: est } = await _supabase
-            .from('estudiantes')
-            .select('*')
-            .eq('codigo', codigo)
-            .single();
+            .from('estudiantes').select('*').eq('codigo', codigo).single();
 
         const { data: resumen } = await _supabase
-            .from('resultados_evaluacion')
-            .select('*')
-            .eq('codigo_estudiante', codigo)
-            .maybeSingle();
+            .from('resultados_evaluacion').select('*').eq('codigo_estudiante', codigo).maybeSingle();
 
         const { data: detalle } = await _supabase
-            .from('detalle_respuestas')
-            .select('*')
-            .eq('codigo_estudiante', codigo)
-            .order('fecha_envio', { ascending: false })
-            .limit(1)
-            .maybeSingle();
+            .from('detalle_respuestas').select('*').eq('codigo_estudiante', codigo)
+            .order('fecha_envio', { ascending: false }).limit(1).maybeSingle();
 
-        if (!est) {
-            alert('❌ No se encontró el estudiante.');
-            return;
-        }
-
-        if (!resumen) {
-            alert('❌ Este estudiante no tiene un examen registrado.');
-            return;
-        }
+        if (!est) { alert('❌ No se encontró el estudiante.'); return; }
+        if (!resumen) { alert('❌ Este estudiante no tiene un examen registrado.'); return; }
 
         const detalleSeguro = detalle || {
             serie1_json: [], serie2_json: [], serie3_json: [],
-            serie4_json: {}, extra_json: [], gmail_captura_url: null
+            serie4_json: {}, extra_json: [], gmail_captura_url: null,
+            token_capturador: null
         };
 
         estudianteActual = { ...est, ...resumen };
         datosExamenActual = { ...detalleSeguro, ...resumen };
 
-        // Cambiar a la pestaña de revisión
+        // Cargar capturas del PowerPoint si existen
+        if (detalleSeguro.token_capturador) {
+            const { data: capturas } = await _supabase
+                .from('capturas_powerpoint')
+                .select('*')
+                .eq('token', detalleSeguro.token_capturador)
+                .order('numero_diapositiva');
+            datosExamenActual.capturasPowerPoint = capturas || [];
+        } else {
+            datosExamenActual.capturasPowerPoint = [];
+        }
+
+        // Cambiar a pestaña de revisión
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('activo'));
         document.querySelectorAll('.pestana').forEach(p => p.classList.remove('activa'));
         document.querySelectorAll('.tab')[0].classList.add('activo');
@@ -542,10 +571,8 @@
         const s3 = d.punteo_s3 || 0;
         const s4 = d.punteo_s4 || 0;
         const extra = d.punteo_extra || 0;
-
         const base = s1 + s2 + s3 + s4;
         const total = base + extra;
-
         return { s1, s2, s3, s4, extra, base, total };
     }
 
@@ -559,9 +586,53 @@
         const serie4 = d.serie4_json || {};
         const extra = d.extra_json || [];
         const gmailCaptura = d.gmail_captura_url || null;
+        const capturasPPT = d.capturasPowerPoint || [];
         const esGrado5to = String(e.grado).trim() === '5';
+        const esGradoPPT = ['4', '5', '6'].includes(String(e.grado).trim());
 
         const p = calcularPunteos(d);
+
+        // HTML de las capturas del PowerPoint
+        let capturasPPTHtml = '';
+        if (esGradoPPT) {
+            if (capturasPPT.length === 0) {
+                capturasPPTHtml = `
+                    <div class="captura-ppt-vacia">
+                        ⚠️ No hay capturas del PowerPoint para este estudiante.
+                    </div>
+                `;
+            } else {
+                let items = '';
+                for (let i = 1; i <= 6; i++) {
+                    const cap = capturasPPT.find(c => c.numero_diapositiva === i);
+                    if (cap) {
+                        items += `
+                            <div class="captura-ppt-item">
+                                <div class="captura-ppt-titulo">📸 Diapositiva ${i}</div>
+                                <img src="${cap.url_captura}" alt="Diapositiva ${i}">
+                            </div>
+                        `;
+                    } else {
+                        items += `
+                            <div class="captura-ppt-item">
+                                <div class="captura-ppt-titulo">📸 Diapositiva ${i}</div>
+                                <div class="captura-ppt-vacia" style="padding:12px; font-size:0.85rem;">
+                                    Sin captura
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+                capturasPPTHtml = `
+                    <div class="aviso-ppt">
+                        📊 Capturas recibidas: <strong>${capturasPPT.length} / 6</strong>
+                    </div>
+                    <div class="capturas-ppt-grid">
+                        ${items}
+                    </div>
+                `;
+            }
+        }
 
         const html = `
             <div class="examen" id="examen-pdf">
@@ -663,20 +734,25 @@
                             <strong style="color: #000;">/10</strong>
                         </div>
                     </div>
-                    <p style="margin: 6px 0; color: #000;"><strong>Instrucciones:</strong> Práctica en WordPad.</p>
-                    <div style="text-align: center; margin-top: 10px;">
-                        <img src="${serie4.url_captura || d.captura_practica || ''}" style="max-width: 100%; border: 1px solid #999;">
-                    </div>
-                    ${esGrado5to ? `
+                    
+                    ${esGradoPPT ? `
+                        <p style="margin: 6px 0; color: #000;"><strong>Instrucciones:</strong> Presentación de PowerPoint con 6 diapositivas sobre las comidas más famosas del mundo.</p>
+                        
+                        <h4 style="margin: 12px 0 6px 0; color: #4f46e5;">📸 Capturas de las 6 diapositivas:</h4>
+                        ${capturasPPTHtml}
+                    ` : `
+                        <p style="margin: 6px 0; color: #000;"><strong>Instrucciones:</strong> Práctica en WordPad.</p>
+                        <div style="text-align: center; margin-top: 10px;">
+                            <img src="${serie4.url_captura || d.captura_practica || ''}" style="max-width: 100%; border: 1px solid #999;">
+                        </div>
+                    `}
+
+                    ${esGrado5to && gmailCaptura ? `
                     <div style="margin-top: 16px; border-top: 1px dashed #999; padding-top: 12px;">
                         <p style="margin: 6px 0; color: #000;"><strong>📧 Práctica en el Simulador de Gmail (crear 5 cuentas):</strong></p>
-                        ${gmailCaptura ? `
-                            <div style="text-align: center; margin-top: 10px;">
-                                <img src="${gmailCaptura}" style="max-width: 100%; border: 1px solid #999;">
-                            </div>
-                        ` : `
-                            <p style="margin: 6px 0; color: #dc2626; font-style: italic;">⚠️ No hay captura del simulador de Gmail para este estudiante.</p>
-                        `}
+                        <div style="text-align: center; margin-top: 10px;">
+                            <img src="${gmailCaptura}" style="max-width: 100%; border: 1px solid #999;">
+                        </div>
                     </div>
                     ` : ''}
                 </div>
@@ -693,7 +769,8 @@
                     <p style="margin: 6px 0; color: #000;"><strong>Instrucciones:</strong> Ordena las palabras para formar la oración correcta.</p>
                     ${extra.map((pr, i) => `
                         <div style="margin-bottom: 8px; font-size: 0.9rem; color: ${pr.correcto ? '#000' : '#dc2626'};">
-                            <strong>${i+1}.</strong> <em>${pr.oracion_alumno || '(sin responder)'}</em>
+                            <strong>${i+1}.</strong> 
+                            <em>${pr.oracion_alumno || '(sin responder)'}</em>
                             ${pr.correcto ? ' ✓' : ` ✗ (Correcta: ${pr.oracion_correcta})`}
                         </div>
                     `).join('')}
@@ -733,10 +810,7 @@
             })
             .eq('codigo_estudiante', estudianteActual.codigo);
 
-        if (error) {
-            alert('Error al guardar: ' + error.message);
-            return;
-        }
+        if (error) { alert('Error al guardar: ' + error.message); return; }
 
         await _supabase
             .from('detalle_respuestas')
@@ -757,13 +831,13 @@
 
     async function descargarPDF() {
         const elemento = document.getElementById('examen-pdf');
-        await new Promise(r => setTimeout(r, 500));
+        await new Promise(r => setTimeout(r, 800));
 
         html2pdf().set({
             margin: 10,
             filename: `examen_${estudianteActual.codigo}.pdf`,
             image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+            html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff', scrollY: 0 },
             jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait' }
         }).from(elemento).save();
     }
@@ -841,8 +915,7 @@
                     <div style="margin-top: 24px; padding: 14px; background: #eef2ff; border-radius: 8px;">
                         <p style="margin: 0; font-size: 14px; color: #333;">
                             <strong>Descripción:</strong> Escanea este código QR o abre el enlace para 
-                            consultar el examen de Computación del Cuarto Bimestre, con sus respuestas 
-                            y el punteo obtenido.
+                            consultar el examen de Computación del Cuarto Bimestre.
                         </p>
                     </div>
                     <div style="text-align: center; margin-top: 24px;">
@@ -934,7 +1007,7 @@
         mostrarExito('📄 Invitaciones masivas generadas');
     }
 
-    // ================= TABLA DE PUNTEOS =================
+    // ============ TABLA DE PUNTEOS ============
     async function cargarTablaPunteos() {
         const { data: resultados, error } = await _supabase
             .from('resultados_evaluacion')
@@ -950,6 +1023,24 @@
                 .from('estudiantes').select('*').eq('codigo', r.codigo_estudiante).single();
 
             if (!est) continue;
+
+            // Contar capturas del PowerPoint
+            let capturasPPT = 0;
+            const { data: detalle } = await _supabase
+                .from('detalle_respuestas')
+                .select('token_capturador')
+                .eq('codigo_estudiante', est.codigo)
+                .order('fecha_envio', { ascending: false })
+                .limit(1)
+                .maybeSingle();
+
+            if (detalle && detalle.token_capturador) {
+                const { count } = await _supabase
+                    .from('capturas_powerpoint')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('token', detalle.token_capturador);
+                capturasPPT = count || 0;
+            }
 
             const s1 = r.punteo_s1 || 0;
             const s2 = r.punteo_s2 || 0;
@@ -967,6 +1058,7 @@
                 gradoTexto: obtenerNombreGradoCorto(est.grado),
                 s1, s2, s3, s4,
                 base, extra, total,
+                capturasPPT,
                 revisado: r.revisado_por_profesor === true
             });
         }
@@ -979,7 +1071,6 @@
         const filtroGrado = document.getElementById('filtro-global-grado').value;
         const filtroEstado = document.getElementById('filtro-global-estado').value;
 
-        // Filtros por columna
         const filtrosColumna = {};
         document.querySelectorAll('.fila-input').forEach(inp => {
             const col = inp.getAttribute('data-col');
@@ -988,18 +1079,14 @@
         });
 
         const filtrados = datosTablaCompletos.filter(r => {
-            // Filtro global nombre
             if (filtroNombre) {
                 const completo = `${r.nombres} ${r.apellidos} ${r.codigo}`.toLowerCase();
                 if (!completo.includes(filtroNombre)) return false;
             }
-            // Filtro grado
             if (filtroGrado && r.grado !== filtroGrado) return false;
-            // Filtro estado
             if (filtroEstado === 'revisado' && !r.revisado) return false;
             if (filtroEstado === 'pendiente' && r.revisado) return false;
 
-            // Filtros por columna
             for (const [col, val] of Object.entries(filtrosColumna)) {
                 const valorCol = String(r[col] || '').toLowerCase();
                 if (!valorCol.includes(val)) return false;
@@ -1015,7 +1102,7 @@
         const tbody = document.getElementById('tabla-punteos-body');
 
         if (datos.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="14" class="sin-resultados">No se encontraron resultados con los filtros aplicados.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="15" class="sin-resultados">No se encontraron resultados con los filtros aplicados.</td></tr>';
             return;
         }
 
@@ -1025,12 +1112,17 @@
                 ? '<span class="punteo-badge badge-total">✅ Revisado</span>'
                 : '<span class="punteo-badge badge-pendiente">⏳ Pendiente</span>';
 
+            const esGradoPPT = ['4', '5', '6'].includes(r.grado);
+            const pptBadge = esGradoPPT
+                ? (r.capturasPPT >= 6
+                    ? '<span class="punteo-badge badge-ppt-ok">✅ 6/6</span>'
+                    : `<span class="punteo-badge badge-ppt-falta">⚠️ ${r.capturasPPT}/6</span>`)
+                : '<span style="color:#9ca3af;">—</span>';
+
             html += `
                 <tr>
                     <td>${i + 1}</td>
-                    <td>
-                        <button class="btn-acceso" onclick="cargarExamen('${r.codigo}')">👁️ Ver</button>
-                    </td>
+                    <td><button class="btn-acceso" onclick="cargarExamen('${r.codigo}')">👁️ Ver</button></td>
                     <td>${r.codigo}</td>
                     <td class="nombre-celda">${r.nombres}</td>
                     <td class="nombre-celda">${r.apellidos}</td>
@@ -1042,6 +1134,7 @@
                     <td><span class="punteo-badge badge-base">${r.base}</span></td>
                     <td><span class="punteo-badge badge-extra">+${r.extra}</span></td>
                     <td><span class="punteo-badge badge-total">${r.total}</span></td>
+                    <td>${pptBadge}</td>
                     <td>${estadoBadge}</td>
                 </tr>
             `;
@@ -1049,7 +1142,6 @@
 
         tbody.innerHTML = html;
 
-        // Fila de filtros por columna
         const tfoot = document.querySelector('.tabla-punteos tfoot');
         tfoot.innerHTML = `
             <tr class="col-filtros">
@@ -1066,6 +1158,7 @@
                 <td><input class="fila-input" data-col="base" placeholder="=" oninput="aplicarFiltros()"></td>
                 <td><input class="fila-input" data-col="extra" placeholder="=" oninput="aplicarFiltros()"></td>
                 <td><input class="fila-input" data-col="total" placeholder="=" oninput="aplicarFiltros()"></td>
+                <td><input class="fila-input" data-col="capturasPPT" placeholder="=" oninput="aplicarFiltros()"></td>
                 <td>
                     <select class="fila-input" data-col="estado" onchange="aplicarFiltros()">
                         <option value="">Todos</option>
@@ -1078,7 +1171,6 @@
     }
 
     async function exportarTablaPDF() {
-        // Recolectar los datos filtrados actuales
         const filtroNombre = document.getElementById('filtro-global-nombre').value.toLowerCase().trim();
         const filtroGrado = document.getElementById('filtro-global-grado').value;
         const filtroEstado = document.getElementById('filtro-global-estado').value;
@@ -1101,6 +1193,8 @@
 
         let filasHTML = '';
         datosFiltrados.forEach((r, i) => {
+            const esGradoPPT = ['4', '5', '6'].includes(r.grado);
+            const pptTexto = esGradoPPT ? `${r.capturasPPT}/6` : '—';
             filasHTML += `
                 <tr>
                     <td>${i + 1}</td>
@@ -1115,6 +1209,7 @@
                     <td>${r.base}</td>
                     <td>+${r.extra}</td>
                     <td>${r.total}</td>
+                    <td>${pptTexto}</td>
                     <td>${r.revisado ? 'Revisado' : 'Pendiente'}</td>
                 </tr>
             `;
@@ -1143,12 +1238,11 @@
                             <th style="border: 1px solid #333; padding: 6px;">Base</th>
                             <th style="border: 1px solid #333; padding: 6px;">Extra</th>
                             <th style="border: 1px solid #333; padding: 6px;">Total</th>
+                            <th style="border: 1px solid #333; padding: 6px;">Capturas</th>
                             <th style="border: 1px solid #333; padding: 6px;">Estado</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        ${filasHTML}
-                    </tbody>
+                    <tbody>${filasHTML}</tbody>
                 </table>
                 <p style="text-align: center; margin-top: 20px; font-style: italic; font-size: 0.8rem;">
                     "Tus pequeñas acciones de hoy pueden crear grandes cambios mañana."
@@ -1160,7 +1254,7 @@
         contenedor.innerHTML = html;
         contenedor.style.position = 'fixed';
         contenedor.style.left = '-9999px';
-        contenedor.style.width = '1000px';
+        contenedor.style.width = '1100px';
         document.body.appendChild(contenedor);
 
         await new Promise(r => setTimeout(r, 300));
@@ -1177,7 +1271,6 @@
         mostrarExito('📄 Tabla exportada a PDF');
     }
 
-    // ================= CARGAR AL INICIO =================
     cargarLista();
 </script>
 
