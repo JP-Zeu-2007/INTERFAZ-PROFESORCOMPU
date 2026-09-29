@@ -18,115 +18,98 @@
         }
         .layout { display: flex; height: 100vh; }
 
-        .sidebar {
-            width: 340px;
+        /* ============ BOTÓN DE HABILITAR/DESHABILITAR (TOPBAR) ============ */
+        .topbar {
             background: #fff;
-            border-right: 1px solid #e5e7eb;
-            overflow-y: auto;
-            padding: 16px;
+            border-bottom: 2px solid #e5e7eb;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            z-index: 100;
         }
-        .sidebar h2 { color: #4f46e5; margin: 0 0 12px 0; font-size: 1.2rem; }
-        .filtro-grado {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
-            margin-bottom: 12px;
-            font-size: 0.9rem;
+        .topbar-titulo {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: #4f46e5;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
-        .estudiante {
-            padding: 10px;
-            border: 1px solid #e5e7eb;
-            margin-bottom: 8px;
-            cursor: pointer;
-            border-radius: 8px;
-            transition: all 0.15s;
+        .topbar-estado {
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
-        .estudiante:hover { background: #f0f0ff; border-color: #4f46e5; }
-        .estudiante.pendiente { border-left: 4px solid #f59e0b; }
-        .estudiante.revisado { border-left: 4px solid #10b981; }
-        .estudiante strong { display: block; font-size: 0.9rem; }
-        .estudiante small { color: #6b7280; font-size: 0.75rem; }
-
-        .contenido {
-            flex: 1;
-            padding: 24px;
-            overflow-y: auto;
-        }
-        .examen {
-            background: #fff;
-            padding: 32px;
-            border-radius: 12px;
-            max-width: 850px;
-            margin: auto;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        }
-        .punteo-serie {
-            border: 2px solid #c00;
-            color: #c00;
-            padding: 4px 12px;
-            border-radius: 6px;
+        .estado-indicador {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 999px;
             font-weight: bold;
             font-size: 0.95rem;
-            white-space: nowrap;
+            border: 2px solid transparent;
         }
-        .input-punteo {
-            width: 70px;
-            padding: 6px;
-            font-size: 16px;
-            border: 2px solid #4f46e5;
-            border-radius: 6px;
-            text-align: center;
+        .estado-habilitado {
+            background: #d1fae5;
+            color: #065f46;
+            border-color: #10b981;
         }
-        button {
-            padding: 12px 24px;
-            margin-right: 10px;
+        .estado-deshabilitado {
+            background: #fee2e2;
+            color: #991b1b;
+            border-color: #dc2626;
+        }
+        .estado-indicador .punto {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: parpadeo 1.5s infinite;
+        }
+        .estado-habilitado .punto { background: #10b981; }
+        .estado-deshabilitado .punto { background: #dc2626; }
+        @keyframes parpadeo {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+
+        .btn-toggle {
+            padding: 10px 22px;
             border: none;
             border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
+            font-weight: 800;
             font-size: 1rem;
-            transition: all 0.15s;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
-        .btn-guardar { background: #10b981; color: white; }
-        .btn-guardar:hover { background: #059669; }
-        .btn-pdf { background: #4f46e5; color: white; }
-        .btn-pdf:hover { background: #4338ca; }
-        .btn-qr { background: #f59e0b; color: white; }
-        .btn-qr:hover { background: #d97706; }
-        .btn-masivo { background: #8b5cf6; color: white; }
-        .btn-masivo:hover { background: #7c3aed; }
-        .barra-acciones {
-            margin-top: 24px;
-            padding: 16px;
-            background: #fff;
-            border-radius: 12px;
-            position: sticky;
-            bottom: 0;
-            box-shadow: 0 -4px 12px rgba(0,0,0,0.08);
-        }
-        .placeholder {
-            text-align: center;
-            padding: 80px 20px;
-            color: #9ca3af;
-            font-size: 1.1rem;
-        }
-        .mensaje-exito {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #10b981;
-            color: white;
-            padding: 14px 22px;
-            border-radius: 8px;
-            font-weight: bold;
-            box-shadow: 0 6px 18px rgba(16,185,129,0.4);
-            z-index: 9999;
-            animation: slideIn 0.3s ease;
-        }
-        @keyframes slideIn { from { transform: translateX(400px); } to { transform: translateX(0); } }
+        .btn-toggle:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.15); }
+        .btn-toggle:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        .btn-toggle-habilitar { background: linear-gradient(135deg, #10b981, #059669); color: white; }
+        .btn-toggle-deshabilitar { background: linear-gradient(135deg, #dc2626, #b91c1c); color: white; }
 
-        /* PESTAÑAS */
+        .btn-recargar-top {
+            padding: 8px 14px;
+            background: #e5e7eb;
+            color: #374151;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .btn-recargar-top:hover { background: #d1d5db; }
+
+        /* ============ MAIN ============ */
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
         .tabs {
             display: flex;
             background: #fff;
@@ -150,79 +133,133 @@
         }
         .pestana {
             display: none;
-            height: calc(100vh - 52px);
+            flex: 1;
             overflow: hidden;
         }
         .pestana.activa { display: flex; }
 
-        /* TABLA DE PUNTEOS */
-        .tabla-container {
-            flex: 1;
-            padding: 24px;
+        /* ============ SIDEBAR ============ */
+        .sidebar {
+            width: 340px;
+            background: #fff;
+            border-right: 1px solid #e5e7eb;
             overflow-y: auto;
+            padding: 16px;
+        }
+        .sidebar h2 { color: #4f46e5; margin: 0 0 12px 0; font-size: 1.2rem; }
+        .filtro-grado {
+            width: 100%; padding: 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px; margin-bottom: 12px; font-size: 0.9rem;
+        }
+        .estudiante {
+            padding: 10px; border: 1px solid #e5e7eb;
+            margin-bottom: 8px; cursor: pointer;
+            border-radius: 8px; transition: all 0.15s;
+        }
+        .estudiante:hover { background: #f0f0ff; border-color: #4f46e5; }
+        .estudiante.pendiente { border-left: 4px solid #f59e0b; }
+        .estudiante.revisado { border-left: 4px solid #10b981; }
+        .estudiante strong { display: block; font-size: 0.9rem; }
+        .estudiante small { color: #6b7280; font-size: 0.75rem; }
+
+        .contenido {
+            flex: 1; padding: 24px; overflow-y: auto;
+        }
+        .examen {
+            background: #fff; padding: 32px;
+            border-radius: 12px; max-width: 850px;
+            margin: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .punteo-serie {
+            border: 2px solid #c00; color: #c00;
+            padding: 4px 12px; border-radius: 6px;
+            font-weight: bold; font-size: 0.95rem;
+            white-space: nowrap;
+        }
+        .input-punteo {
+            width: 70px; padding: 6px; font-size: 16px;
+            border: 2px solid #4f46e5; border-radius: 6px;
+            text-align: center;
+        }
+        button {
+            padding: 12px 24px; margin-right: 10px;
+            border: none; border-radius: 8px;
+            cursor: pointer; font-weight: bold;
+            font-size: 1rem; transition: all 0.15s;
+        }
+        .btn-guardar { background: #10b981; color: white; }
+        .btn-guardar:hover { background: #059669; }
+        .btn-pdf { background: #4f46e5; color: white; }
+        .btn-pdf:hover { background: #4338ca; }
+        .btn-qr { background: #f59e0b; color: white; }
+        .btn-qr:hover { background: #d97706; }
+        .btn-masivo { background: #8b5cf6; color: white; }
+        .btn-masivo:hover { background: #7c3aed; }
+        .barra-acciones {
+            margin-top: 24px; padding: 16px;
+            background: #fff; border-radius: 12px;
+            position: sticky; bottom: 0;
+            box-shadow: 0 -4px 12px rgba(0,0,0,0.08);
+        }
+        .placeholder {
+            text-align: center; padding: 80px 20px;
+            color: #9ca3af; font-size: 1.1rem;
+        }
+        .mensaje-exito {
+            position: fixed; top: 20px; right: 20px;
+            background: #10b981; color: white;
+            padding: 14px 22px; border-radius: 8px;
+            font-weight: bold;
+            box-shadow: 0 6px 18px rgba(16,185,129,0.4);
+            z-index: 9999; animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn { from { transform: translateX(400px); } to { transform: translateX(0); } }
+
+        /* ============ TABLA DE PUNTEOS ============ */
+        .tabla-container {
+            flex: 1; padding: 24px; overflow-y: auto;
         }
         .tabla-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-            flex-wrap: wrap;
-            gap: 12px;
+            display: flex; justify-content: space-between;
+            align-items: center; margin-bottom: 16px;
+            flex-wrap: wrap; gap: 12px;
         }
         .tabla-header h2 { color: #4f46e5; margin: 0; font-size: 1.4rem; }
         .tabla-header-acciones { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
         .filtro-global {
-            padding: 8px 12px;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
-            font-size: 0.9rem;
-            min-width: 180px;
+            padding: 8px 12px; border: 1px solid #d1d5db;
+            border-radius: 6px; font-size: 0.9rem; min-width: 180px;
         }
         .btn-exportar {
-            background: #dc2626;
-            color: white;
-            padding: 8px 16px;
-            border: none;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 0.9rem;
+            background: #dc2626; color: white;
+            padding: 8px 16px; border: none; border-radius: 6px;
+            font-weight: bold; cursor: pointer; font-size: 0.9rem;
         }
         .btn-exportar:hover { background: #b91c1c; }
 
         .tabla-punteos {
-            width: 100%;
-            border-collapse: collapse;
-            background: #fff;
-            border-radius: 12px;
+            width: 100%; border-collapse: collapse;
+            background: #fff; border-radius: 12px;
             overflow: hidden;
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
             font-size: 0.85rem;
         }
         .tabla-punteos th {
-            background: #4f46e5;
-            color: white;
-            padding: 10px 6px;
-            text-align: center;
-            font-weight: 600;
-            white-space: nowrap;
+            background: #4f46e5; color: white;
+            padding: 10px 6px; text-align: center;
+            font-weight: 600; white-space: nowrap;
         }
         .tabla-punteos td {
-            padding: 8px 6px;
-            text-align: center;
-            border-bottom: 1px solid #e5e7eb;
-            color: #1f2937;
+            padding: 8px 6px; text-align: center;
+            border-bottom: 1px solid #e5e7eb; color: #1f2937;
         }
         .tabla-punteos tr:hover td { background: #f0f0ff; }
         .tabla-punteos .nombre-celda { text-align: left; padding-left: 12px; }
         .fila-input {
-            width: 100%;
-            padding: 4px 6px;
-            border: 1px solid #d1d5db;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            text-align: center;
-            outline: none;
+            width: 100%; padding: 4px 6px;
+            border: 1px solid #d1d5db; border-radius: 4px;
+            font-size: 0.75rem; text-align: center; outline: none;
         }
         .fila-input:focus { border-color: #4f46e5; }
         .fila-input.nombre-filtro { text-align: left; }
@@ -232,23 +269,16 @@
             border-bottom: 2px solid #e5e7eb !important;
         }
         .btn-acceso {
-            background: #4f46e5;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 0.75rem;
+            background: #4f46e5; color: white;
+            border: none; padding: 5px 10px;
+            border-radius: 5px; cursor: pointer;
+            font-weight: bold; font-size: 0.75rem;
         }
         .btn-acceso:hover { background: #4338ca; }
 
         .punteo-badge {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-weight: bold;
-            font-size: 0.8rem;
+            display: inline-block; padding: 2px 8px;
+            border-radius: 10px; font-weight: bold; font-size: 0.8rem;
         }
         .badge-base { background: #dbeafe; color: #1e40af; }
         .badge-extra { background: #fef3c7; color: #92400e; }
@@ -258,156 +288,150 @@
         .badge-ppt-falta { background: #fef3c7; color: #92400e; }
 
         .sin-resultados {
-            text-align: center;
-            padding: 40px;
-            color: #9ca3af;
-            font-style: italic;
+            text-align: center; padding: 40px;
+            color: #9ca3af; font-style: italic;
         }
 
-        .contenedor-tabla-pdf {
-            background: #fff;
-            padding: 20px;
-        }
-        .titulo-tabla-pdf {
-            text-align: center;
-            margin-bottom: 20px;
-            color: #000;
-        }
+        .contenedor-tabla-pdf { background: #fff; padding: 20px; }
+        .titulo-tabla-pdf { text-align: center; margin-bottom: 20px; color: #000; }
         .titulo-tabla-pdf h2 { margin: 0; font-size: 1.2rem; }
         .titulo-tabla-pdf p { margin: 4px 0; font-size: 0.85rem; color: #666; }
 
-        /* Grid capturas PowerPoint */
+        /* ============ CAPTURAS PPT ============ */
         .capturas-ppt-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            margin-top: 12px;
+            display: flex; flex-direction: column;
+            gap: 16px; margin-top: 12px;
         }
         .captura-ppt-item {
-            background: #f9fafb;
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 10px;
+            background: #f9fafb; border: 2px solid #e5e7eb;
+            border-radius: 8px; padding: 10px;
         }
         .captura-ppt-titulo {
-            font-weight: bold;
-            color: #4f46e5;
-            font-size: 0.95rem;
-            margin-bottom: 8px;
+            font-weight: bold; color: #4f46e5;
+            font-size: 0.95rem; margin-bottom: 8px;
         }
         .captura-ppt-item img {
-            width: 100%;
-            border-radius: 6px;
-            border: 1px solid #999;
-            display: block;
+            width: 100%; border-radius: 6px;
+            border: 1px solid #999; display: block;
         }
         .captura-ppt-vacia {
-            background: #fef3c7;
-            border: 2px dashed #f59e0b;
-            color: #92400e;
-            padding: 20px;
-            border-radius: 8px;
-            text-align: center;
+            background: #fef3c7; border: 2px dashed #f59e0b;
+            color: #92400e; padding: 20px;
+            border-radius: 8px; text-align: center;
             font-style: italic;
         }
         .aviso-ppt {
-            background: #fef3c7;
-            border-left: 4px solid #f59e0b;
-            padding: 12px 16px;
-            border-radius: 6px;
-            color: #78350f;
-            margin-top: 12px;
-            font-size: 0.9rem;
+            background: #fef3c7; border-left: 4px solid #f59e0b;
+            padding: 12px 16px; border-radius: 6px;
+            color: #78350f; margin-top: 12px; font-size: 0.9rem;
         }
     </style>
 </head>
 <body>
 
-<div class="tabs">
-    <div class="tab activo" onclick="cambiarPestana('revision')">👤 Revisión Individual</div>
-    <div class="tab" onclick="cambiarPestana('tabla')">📊 Tabla de Punteos</div>
-</div>
+<div class="main-container">
 
-<div class="pestana activa" id="pestana-revision">
-    <div class="layout" style="width: 100%;">
-        <div class="sidebar">
-            <h2>📚 Panel del Profesor</h2>
-            <p style="font-size: 0.8rem; color: #6b7280; margin-bottom: 12px;">
-                Evaluación de Computación - Cuarto Bimestre
-            </p>
-
-            <select class="filtro-grado" id="filtro-grado" onchange="cargarLista()">
-                <option value="">Todos los grados</option>
-                <option value="2">Segundo Primaria</option>
-                <option value="3">Tercer Primaria</option>
-                <option value="4">Cuarto Primaria</option>
-                <option value="5">Quinto Primaria</option>
-                <option value="6">Sexto Primaria</option>
-            </select>
-
-            <button class="btn-masivo" style="width:100%; padding:10px; font-size:0.9rem; margin-bottom:12px;" onclick="generarInvitacionesMasivas()">
-                📄 Generar Invitaciones del Grado
-            </button>
-
-            <div id="lista-estudiantes"></div>
+    <!-- ============ TOPBAR CON BOTÓN DE HABILITAR ============ -->
+    <div class="topbar">
+        <div class="topbar-titulo">
+            📚 Panel del Profesor
         </div>
+        <div class="topbar-estado">
+            <div class="estado-indicador" id="indicador-estado">
+                <span class="punto"></span>
+                <span id="texto-estado">Cargando...</span>
+            </div>
+            <button class="btn-toggle" id="btn-toggle-estado" onclick="toggleEvaluaciones()" disabled>
+                ⏳ Cargando...
+            </button>
+            <button class="btn-recargar-top" onclick="cargarEstadoConfiguracion()">
+                🔄 Actualizar
+            </button>
+        </div>
+    </div>
 
-        <div class="contenido" id="contenido">
-            <div class="placeholder">
-                👈 Selecciona un estudiante de la lista para revisar su examen.
+    <div class="tabs">
+        <div class="tab activo" onclick="cambiarPestana('revision')">👤 Revisión Individual</div>
+        <div class="tab" onclick="cambiarPestana('tabla')">📊 Tabla de Punteos</div>
+    </div>
+
+    <div class="pestana activa" id="pestana-revision">
+        <div class="layout" style="width: 100%;">
+            <div class="sidebar">
+                <h2>📚 Estudiantes</h2>
+                <select class="filtro-grado" id="filtro-grado" onchange="cargarLista()">
+                    <option value="">Todos los grados</option>
+                    <option value="2">Segundo Primaria</option>
+                    <option value="3">Tercer Primaria</option>
+                    <option value="4">Cuarto Primaria</option>
+                    <option value="5">Quinto Primaria</option>
+                    <option value="6">Sexto Primaria</option>
+                </select>
+
+                <button class="btn-masivo" style="width:100%; padding:10px; font-size:0.9rem; margin-bottom:12px;" onclick="generarInvitacionesMasivas()">
+                    📄 Generar Invitaciones del Grado
+                </button>
+
+                <div id="lista-estudiantes"></div>
+            </div>
+
+            <div class="contenido" id="contenido">
+                <div class="placeholder">
+                    👈 Selecciona un estudiante de la lista para revisar su examen.
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<div class="pestana" id="pestana-tabla">
-    <div class="tabla-container">
-        <div class="tabla-header">
-            <h2>📊 Tabla de Punteos</h2>
-            <div class="tabla-header-acciones">
-                <input type="text" class="filtro-global" id="filtro-global-nombre" placeholder="🔍 Buscar por nombre..." oninput="aplicarFiltros()">
-                <select class="filtro-global" id="filtro-global-grado" onchange="aplicarFiltros()">
-                    <option value="">Todos los grados</option>
-                    <option value="2">2do Primaria</option>
-                    <option value="3">3ro Primaria</option>
-                    <option value="4">4to Primaria</option>
-                    <option value="5">5to Primaria</option>
-                    <option value="6">6to Primaria</option>
-                </select>
-                <select class="filtro-global" id="filtro-global-estado" onchange="aplicarFiltros()">
-                    <option value="">Todos los estados</option>
-                    <option value="revisado">✅ Revisado</option>
-                    <option value="pendiente">⏳ Pendiente</option>
-                </select>
-                <button class="btn-exportar" onclick="exportarTablaPDF()">📄 Exportar PDF</button>
+    <div class="pestana" id="pestana-tabla">
+        <div class="tabla-container">
+            <div class="tabla-header">
+                <h2>📊 Tabla de Punteos</h2>
+                <div class="tabla-header-acciones">
+                    <input type="text" class="filtro-global" id="filtro-global-nombre" placeholder="🔍 Buscar por nombre..." oninput="aplicarFiltros()">
+                    <select class="filtro-global" id="filtro-global-grado" onchange="aplicarFiltros()">
+                        <option value="">Todos los grados</option>
+                        <option value="2">2do Primaria</option>
+                        <option value="3">3ro Primaria</option>
+                        <option value="4">4to Primaria</option>
+                        <option value="5">5to Primaria</option>
+                        <option value="6">6to Primaria</option>
+                    </select>
+                    <select class="filtro-global" id="filtro-global-estado" onchange="aplicarFiltros()">
+                        <option value="">Todos los estados</option>
+                        <option value="revisado">✅ Revisado</option>
+                        <option value="pendiente">⏳ Pendiente</option>
+                    </select>
+                    <button class="btn-exportar" onclick="exportarTablaPDF()">📄 Exportar PDF</button>
+                </div>
             </div>
-        </div>
 
-        <table class="tabla-punteos" id="tabla-punteos">
-            <thead>
-                <tr>
-                    <th style="width: 40px;">#</th>
-                    <th style="width: 60px;">Acción</th>
-                    <th style="width: 100px;">Código</th>
-                    <th style="min-width: 120px;">Nombres</th>
-                    <th style="min-width: 120px;">Apellidos</th>
-                    <th style="width: 80px;">Grado</th>
-                    <th style="width: 60px;">S1</th>
-                    <th style="width: 60px;">S2</th>
-                    <th style="width: 60px;">S3</th>
-                    <th style="width: 60px;">S4</th>
-                    <th style="width: 80px;">Base (40)</th>
-                    <th style="width: 70px;">Extra</th>
-                    <th style="width: 90px;">Total Real</th>
-                    <th style="width: 90px;">Capturas PPT</th>
-                    <th style="width: 90px;">Estado</th>
-                </tr>
-            </thead>
-            <tbody id="tabla-punteos-body">
-                <tr><td colspan="15" class="sin-resultados">Cargando datos...</td></tr>
-            </tbody>
-            <tfoot></tfoot>
-        </table>
+            <table class="tabla-punteos" id="tabla-punteos">
+                <thead>
+                    <tr>
+                        <th style="width: 40px;">#</th>
+                        <th style="width: 60px;">Acción</th>
+                        <th style="width: 100px;">Código</th>
+                        <th style="min-width: 120px;">Nombres</th>
+                        <th style="min-width: 120px;">Apellidos</th>
+                        <th style="width: 80px;">Grado</th>
+                        <th style="width: 60px;">S1</th>
+                        <th style="width: 60px;">S2</th>
+                        <th style="width: 60px;">S3</th>
+                        <th style="width: 60px;">S4</th>
+                        <th style="width: 80px;">Base (40)</th>
+                        <th style="width: 70px;">Extra</th>
+                        <th style="width: 90px;">Total Real</th>
+                        <th style="width: 90px;">Capturas PPT</th>
+                        <th style="width: 90px;">Estado</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-punteos-body">
+                    <tr><td colspan="15" class="sin-resultados">Cargando datos...</td></tr>
+                </tbody>
+                <tfoot></tfoot>
+            </table>
+        </div>
     </div>
 </div>
 
@@ -433,6 +457,7 @@
     let datosExamenActual = null;
     let listaEstudiantesCache = [];
     let datosTablaCompletos = [];
+    let estadoActual = false;
 
     function obtenerNombreGrado(gradoNum) {
         switch(String(gradoNum).trim()) {
@@ -462,6 +487,87 @@
         div.textContent = msg;
         document.body.appendChild(div);
         setTimeout(() => div.remove(), 3000);
+    }
+
+    // ============ CONFIGURACIÓN: HABILITAR/DESHABILITAR ============
+    async function cargarEstadoConfiguracion() {
+        const btn = document.getElementById('btn-toggle-estado');
+        const indicador = document.getElementById('indicador-estado');
+        const texto = document.getElementById('texto-estado');
+
+        btn.disabled = true;
+        btn.textContent = '⏳ Cargando...';
+
+        try {
+            const { data, error } = await _supabase
+                .from('configuracion')
+                .select('valor')
+                .eq('clave', 'evaluaciones_habilitadas')
+                .maybeSingle();
+
+            if (error) throw error;
+
+            estadoActual = data && data.valor === 'true';
+
+            if (estadoActual) {
+                indicador.className = 'estado-indicador estado-habilitado';
+                texto.textContent = '✅ Evaluaciones HABILITADAS';
+                btn.textContent = '🔴 Deshabilitar Evaluaciones';
+                btn.className = 'btn-toggle btn-toggle-deshabilitar';
+            } else {
+                indicador.className = 'estado-indicador estado-deshabilitado';
+                texto.textContent = '🔴 Evaluaciones DESHABILITADAS';
+                btn.textContent = '🟢 Habilitar Evaluaciones';
+                btn.className = 'btn-toggle btn-toggle-habilitar';
+            }
+
+            btn.disabled = false;
+
+        } catch (error) {
+            console.error('Error cargando configuración:', error);
+            texto.textContent = '⚠️ Error al cargar';
+            btn.textContent = '⚠️ Error';
+            btn.className = 'btn-toggle';
+            btn.disabled = false;
+        }
+    }
+
+    async function toggleEvaluaciones() {
+        const btn = document.getElementById('btn-toggle-estado');
+        const nuevoEstado = !estadoActual;
+
+        const mensaje = nuevoEstado
+            ? '✅ ¿Habilitar las evaluaciones? Los alumnos podrán comenzar sus exámenes.'
+            : '🔴 ¿Deshabilitar las evaluaciones? Los alumnos NO podrán comenzar nuevos exámenes.';
+
+        if (!confirm(mensaje)) return;
+
+        btn.disabled = true;
+        btn.textContent = '⏳ Guardando...';
+
+        try {
+            const { error } = await _supabase
+                .from('configuracion')
+                .update({
+                    valor: nuevoEstado ? 'true' : 'false',
+                    fecha_actualizacion: new Date().toISOString()
+                })
+                .eq('clave', 'evaluaciones_habilitadas');
+
+            if (error) throw error;
+
+            estadoActual = nuevoEstado;
+
+            mostrarExito(nuevoEstado ? '✅ Evaluaciones habilitadas' : '🔴 Evaluaciones deshabilitadas');
+
+            await cargarEstadoConfiguracion();
+
+        } catch (error) {
+            console.error('Error cambiando estado:', error);
+            alert('❌ Error al cambiar el estado: ' + error.message);
+            btn.disabled = false;
+            btn.textContent = estadoActual ? '🔴 Deshabilitar Evaluaciones' : '🟢 Habilitar Evaluaciones';
+        }
     }
 
     // ============ PESTAÑAS ============
@@ -544,7 +650,6 @@
         estudianteActual = { ...est, ...resumen };
         datosExamenActual = { ...detalleSeguro, ...resumen };
 
-        // Cargar capturas del PowerPoint si existen
         if (detalleSeguro.token_capturador) {
             const { data: capturas } = await _supabase
                 .from('capturas_powerpoint')
@@ -556,7 +661,6 @@
             datosExamenActual.capturasPowerPoint = [];
         }
 
-        // Cambiar a pestaña de revisión
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('activo'));
         document.querySelectorAll('.pestana').forEach(p => p.classList.remove('activa'));
         document.querySelectorAll('.tab')[0].classList.add('activo');
@@ -592,7 +696,6 @@
 
         const p = calcularPunteos(d);
 
-        // HTML de las capturas del PowerPoint
         let capturasPPTHtml = '';
         if (esGradoPPT) {
             if (capturasPPT.length === 0) {
@@ -741,7 +844,7 @@
                         <h4 style="margin: 12px 0 6px 0; color: #4f46e5;">📸 Capturas de las 6 diapositivas:</h4>
                         ${capturasPPTHtml}
                     ` : `
-                        <p style="margin: 6px 0; color: #000;"><strong>Instrucciones:</strong> Práctica en WordPad.</p>
+                        <p style="margin: 6px 0; color: #000;"><strong>Instrucciones:</strong> Práctica en WordPad / Word.</p>
                         <div style="text-align: center; margin-top: 10px;">
                             <img src="${serie4.url_captura || d.captura_practica || ''}" style="max-width: 100%; border: 1px solid #999;">
                         </div>
@@ -1024,7 +1127,6 @@
 
             if (!est) continue;
 
-            // Contar capturas del PowerPoint
             let capturasPPT = 0;
             const { data: detalle } = await _supabase
                 .from('detalle_respuestas')
@@ -1271,6 +1373,8 @@
         mostrarExito('📄 Tabla exportada a PDF');
     }
 
+    // ============ INICIALIZACIÓN ============
+    cargarEstadoConfiguracion();
     cargarLista();
 </script>
 
