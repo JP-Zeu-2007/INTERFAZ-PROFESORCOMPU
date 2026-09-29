@@ -165,6 +165,7 @@
 
         .contenido {
             flex: 1; padding: 24px; overflow-y: auto;
+            padding-bottom: 120px !important;
         }
         .examen {
             background: #fff; padding: 32px;
@@ -183,7 +184,7 @@
             text-align: center;
         }
         button {
-            padding: 12px 24px; margin-right: 10px;
+            padding: 12px 24px;
             border: none; border-radius: 8px;
             cursor: pointer; font-weight: bold;
             font-size: 1rem; transition: all 0.15s;
@@ -196,12 +197,35 @@
         .btn-qr:hover { background: #d97706; }
         .btn-masivo { background: #8b5cf6; color: white; }
         .btn-masivo:hover { background: #7c3aed; }
+
+        /* ============ BARRA DE ACCIONES FIJA ABAJO ============ */
         .barra-acciones {
-            margin-top: 24px; padding: 16px;
-            background: #fff; border-radius: 12px;
-            position: sticky; bottom: 0;
-            box-shadow: 0 -4px 12px rgba(0,0,0,0.08);
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            margin: 0;
+            padding: 14px 20px;
+            background: #fff;
+            border-top: 2px solid #e5e7eb;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+            z-index: 100;
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
         }
+        .barra-acciones button {
+            margin: 0 !important;
+            flex: 1;
+            max-width: 260px;
+            padding: 14px 20px;
+        }
+        /* Ocultar barra cuando estamos en la tabla */
+        body.en-tabla .barra-acciones {
+            display: none;
+        }
+
         .placeholder {
             text-align: center; padding: 80px 20px;
             color: #9ca3af; font-size: 1.1rem;
@@ -557,9 +581,7 @@
             if (error) throw error;
 
             estadoActual = nuevoEstado;
-
             mostrarExito(nuevoEstado ? '✅ Evaluaciones habilitadas' : '🔴 Evaluaciones deshabilitadas');
-
             await cargarEstadoConfiguracion();
 
         } catch (error) {
@@ -577,8 +599,12 @@
         event.target.classList.add('activo');
         document.getElementById('pestana-' + nombre).classList.add('activa');
 
+        // Ocultar barra de acciones cuando estamos en la tabla
         if (nombre === 'tabla') {
+            document.body.classList.add('en-tabla');
             cargarTablaPunteos();
+        } else {
+            document.body.classList.remove('en-tabla');
         }
     }
 
@@ -665,6 +691,7 @@
         document.querySelectorAll('.pestana').forEach(p => p.classList.remove('activa'));
         document.querySelectorAll('.tab')[0].classList.add('activo');
         document.getElementById('pestana-revision').classList.add('activa');
+        document.body.classList.remove('en-tabla');
 
         renderizarExamen();
     }
